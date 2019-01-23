@@ -25,7 +25,7 @@ let rec fib x = match x with
 
 (* Order of patterns is important! General rule of thumb is: use more
    specific patterns first. *)
-let rec fib' x = match x with
+let rec fib' x = match x with   
     x -> fib'(x-1) + fib'(x-2)
 |   1 -> 1
 |   0 -> 0;;
