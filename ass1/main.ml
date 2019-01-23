@@ -14,9 +14,14 @@ in
 if a < 0 then (Neg, unwrap (-a) []) 
 else (NonNeg, unwrap a []);;
 
-(* Functions to present the result in the form of a string. *)
-let print_num a = match a with 
 
+(* Functions to present the result in the form of a string. *)
+let print_num a =  let rec tostring l s = match l with
+[] -> s
+| xi :: xs -> ( string_of_int xi ) ^ ( tostring xs s ) 
+in 
+match a with 
+(Neg, l) -> "-" ^ tostring l "" | (NonNeg, l) -> tostring l "";;
 
  (* Comparison Operation: *)
 
