@@ -23,13 +23,15 @@ in
 match a with 
 (Neg, l) -> "-" ^ tostring l "" | (NonNeg, l) -> tostring l "";;
 
- (* Comparison Operation: *)
+(* Comparison Operation: *)
 
-(* Inverted List Addition *)
+(* Complementary functions *)
 let rec modulo a b = if a < 0 then modulo (a+b) b
 else a mod b;;
 let rec divide a b = if a < 0 then divide (a + b) b - 1
 else a / b ;;
+
+(* Inverted List Addition *)
 let list_add a b = match a with
 [] -> ( match b with [] -> [0] | _ -> b )
 | _ -> let rec add_carry a1 b1 carry = match a1 with
