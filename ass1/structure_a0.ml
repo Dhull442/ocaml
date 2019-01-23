@@ -1,3 +1,5 @@
+open Signature_a0
+  module A0 : BigInt = struct
 (* class definition *)
 type sign = Neg | NonNeg;;
 type bigint = sign * int list;;
@@ -112,3 +114,5 @@ let abs a = match a with
 (Neg, l) -> (NonNeg, l)
 | (_,_) -> a;;
 (* val abs: bigint -> bigint *)
+
+end
