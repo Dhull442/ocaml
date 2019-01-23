@@ -23,7 +23,7 @@ module type BigInt = sig
   `val rem: bigint -> bigint -> bigint`
   - [ ] (* Unary negation *)<br>
   `val minus: bigint -> bigint`
-  - [ ] (* Absolute value *)<br>
+  - [X] (* Absolute value *)<br>
   `val abs: bigint -> bigint`
 
   (* Comparison operations:  *)

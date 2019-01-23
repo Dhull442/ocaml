@@ -106,3 +106,9 @@ let sub a b = match a with
 (_,[]) ->(  match b with (NonNeg, bs) -> (Neg, bs) | (Neg,bs) -> (NonNeg,bs) )
 |  (NonNeg, al) -> (match b with (_,[])-> raise InvalidInt | (Neg, bl) -> (NonNeg, list_add (List.rev al) (List.rev bl)) | (NonNeg, bl) ->  cvt_listsub_to_sub (list_subtract (List.rev al) (List.rev bl)))
 |  (Neg, al) -> (match b with (_,[])-> raise InvalidInt | (NonNeg, bl) -> (Neg, list_add (List.rev al) (List.rev bl)) | (Neg, bl) ->  cvt_listsub_to_sub (list_subtract (List.rev bl) (List.rev al)) ) ;;
+
+(* Absolute value *)
+let abs a = match a with
+(Neg, l) -> (NonNeg, l)
+| (_,_) -> a;;
+(* val abs: bigint -> bigint *)
