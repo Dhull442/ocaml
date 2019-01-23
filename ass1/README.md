@@ -11,11 +11,11 @@ module type BigInt = sig
     - there are no unnecessary leading zeros. *)
 
 * Function:
-  - [ ] (* Arithmetic operations:  *)<br>
+  - [x] (* Addition:  *)<br>
   `val add: bigint -> bigint -> bigint`
   - [ ] (* Multiplication *)<br>
   `val mult: bigint -> bigint -> bigint`
-  - [ ] (* Subtraction *)<br>
+  - [x] (* Subtraction *)<br>
   `val sub: bigint -> bigint -> bigint`
   - [ ] (* Quotient *)<br>
   `val div: bigint -> bigint -> bigint`
@@ -27,15 +27,15 @@ module type BigInt = sig
   `val abs: bigint -> bigint`
 
   (* Comparison operations:  *)
-  - [ ] (* Equal *)<br>
+  - [X] (* Equal *)<br>
   `val eq: bigint -> bigint -> bool`
-  - [ ] (* Greater_than. *)<br>
+  - [X] (* Greater_than. *)<br>
   `val gt:  bigint -> bigint -> bool`
-  - [ ] (* Less_than. *)<br>
+  - [X] (* Less_than. *)<br>
   `val lt:  bigint -> bigint -> bool`
-  - [ ] (* Great_or_equal. *)<br>
+  - [X] (* Great_or_equal. *)<br>
   `val geq:  bigint -> bigint -> bool`
-  - [ ] (* Less_or_equal.  *)<br>
+  - [X] (* Less_or_equal.  *)<br>
   `val leq:  bigint -> bigint -> bool`
 
   - [x] (* Functions to present the result in the form of a string. *)<br>
@@ -43,6 +43,7 @@ module type BigInt = sig
 
   - [x] (* Conversion functions from OCaml int to bigint. *)<br>
   `val mk_big:  int -> bigint`
+
 
 
 ## Instructions for submission:
