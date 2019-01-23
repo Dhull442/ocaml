@@ -44,7 +44,14 @@ module type BigInt = sig
   - [x] (* Conversion functions from OCaml int to bigint. *)<br>
   `val mk_big:  int -> bigint`
 
-
+* Helper Functions define: <br>
+  - listcomp  a b
+  - modulo a b
+  - divide a b
+  - list_add a b
+  - negation a
+  - list_subtract a b
+  - cvt_listsub_to_sub a
 
 ## Instructions for submission:
 1 Your submission should have one file named structure_a0.ml which implements the interface as below.
