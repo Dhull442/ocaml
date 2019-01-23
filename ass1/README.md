@@ -55,10 +55,12 @@ module type BigInt = sig
 
 ## Instructions for submission:
 1 Your submission should have one file named structure_a0.ml which implements the interface as below.<br>
-  ``` open Signature_a0 
+  ``` 
+  open Signature_a0 
   module A0 : BigInt = struct
    (* Your code goes here *)
-  end```
+  end
+  ```
 
 2 Your code won't compile if all the functions declared in the signature_a0.mli are not implemented in the structure_a0.ml. In case you decide not to implement a function, but want your code to compile and run <br>
  - Mention this in the comments
@@ -70,12 +72,16 @@ E.g.: In case you aren't implementing add <br>
 
 3 Keep signature_a0.mli and structure_a0.ml in the same folder <br>
   - Compile the signature file as
-    ```ocamlc signature_a0.mli
-    This creates a .cmi files```
+    ```
+    ocamlc signature_a0.mli
+    This creates a .cmi files
+    ```
   - Use the top level to test your code 
-    ```#use "structure_a0.ml";;
+    ```
+    #use "structure_a0.ml";;
     open A0;;
-    add (mk_big 5) (mk_big 10);;```
+    add (mk_big 5) (mk_big 10);;
+    ```
 
 4 Grading criteria:
   - Correctness
