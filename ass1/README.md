@@ -38,10 +38,10 @@ module type BigInt = sig
   - [ ] (* Less_or_equal.  *)<br>
   `val leq:  bigint -> bigint -> bool`
 
-  - [ ] (* Functions to present the result in the form of a string. *)<br>
+  - [x] (* Functions to present the result in the form of a string. *)<br>
   `val print_num: bigint -> string`
 
-  - [ ] (* Conversion functions from OCaml int to bigint. *)<br>
+  - [x] (* Conversion functions from OCaml int to bigint. *)<br>
   `val mk_big:  int -> bigint`
 
 
