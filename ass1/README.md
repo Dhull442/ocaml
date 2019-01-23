@@ -55,7 +55,7 @@ module type BigInt = sig
 
 ## Instructions for submission:
 1 Your submission should have one file named structure_a0.ml which implements the interface as below.<br>
-  ```open Signature_a0
+  ``` open Signature_a0 
   module A0 : BigInt = struct
    (* Your code goes here *)
   end```
