@@ -54,32 +54,30 @@ module type BigInt = sig
   - cvt_listsub_to_sub a
 
 ## Instructions for submission:
-1 Your submission should have one file named structure_a0.ml which implements the interface as below.
-  open Signature_a0
+1 Your submission should have one file named structure_a0.ml which implements the interface as below.<br>
+  ```open Signature_a0
   module A0 : BigInt = struct
    (* Your code goes here *)
-  end
+  end```
 
-2 Your code won't compile if all the functions declared in the signature_a0.mli are not implemented in the structure_a0.ml. In case you decide not to implement a function, but want your code to compile and run.
+2 Your code won't compile if all the functions declared in the signature_a0.mli are not implemented in the structure_a0.ml. In case you decide not to implement a function, but want your code to compile and run <br>
  - Mention this in the comments
  - Add "exception Not_implemented" in the structure_a0 (NOT signature_a0.mli)
- - Provide a dummy implementation (for those functions which you aren't implementing) which raises an exception Not_implemented
-E.g.: In case you aren't implementing add
-  exception Not_implemented
+ - Provide a dummy implementation (for those functions which you aren't implementing) which raises an exception Not_implemented <br>
+E.g.: In case you aren't implementing add <br>
+  exception Not_implemented <br>
   let add n1 n2 = raise Not_implemented
 
-3 Keep signature_a0.mli and structure_a0.ml in the same folder
- A. Compile the signature file as
-    ocamlc signature_a0.mli
-    This creates a .cmi files
- B. Use the top level to test your code
-    #use "structure_a0.ml";;
+3 Keep signature_a0.mli and structure_a0.ml in the same folder <br>
+  - Compile the signature file as
+    ```ocamlc signature_a0.mli
+    This creates a .cmi files```
+  - Use the top level to test your code 
+    ```#use "structure_a0.ml";;
     open A0;;
-    add (mk_big 5) (mk_big 10);;
+    add (mk_big 5) (mk_big 10);;```
 
 4 Grading criteria:
-- Correctness
-- Efficiency
-- Code readability, comments etc
-
-*)
+  - Correctness
+  - Efficiency
+  - Code readability, comments etc
