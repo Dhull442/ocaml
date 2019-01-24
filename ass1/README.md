@@ -45,18 +45,30 @@ module type BigInt = sig
   `val mk_big:  int -> bigint`
 
 * Helper Functions define: <br>
-  - listcomp  a b
-  - modulo a b
-  - divide a b
-  - checklist a
-  - list_add a b
-  - negation a
-  - list_subtract a b
-  - map fn a b
-  - list_mult a b
-  - list_div a b
-  - neq_list_div a b
-  - cvt_listsub_to_sub a
+  - Unsigned List Comparator:<br>
+    `val listcomp: 'a list -> 'a list -> int`
+  - Gives the modulo of numbers with proper handling for negative numbers:<br>
+    `val modulo : int -> int -> int`   
+  - Divide Function handling negative numbers as well :<br>
+    `val divide : int -> int -> int`
+  - Remove waste 0's from the front of list :<br>
+    `val checklist : int list -> int list`
+  - Addition of 2 unsigned lists ( Takes inverted lists and outputs real value list ):<br>
+    `val list_add : int list -> int list -> int list`
+  - Negation of Whole list :<br>
+    `val negation : int list -> int list`
+  - Subtraction of two unsigned lists ( Takes inverted lists and outputs order list ) : <br>
+    `val list_subtract : int list -> int list -> int list`
+  - Mapping of a list : <br>
+    `val map : ('a -> 'b -> 'c) -> 'a -> 'b list -> 'c list`
+  - Multiplication of 2 unsigned lists (takes list in ordered way ) :<br>
+    `val list_mult : int list -> int list -> int list`
+  - Divides first list by second and reports quotient (Takes inverted lists) :<br>
+    `val list_div : int list -> int list -> int list`
+  - Divides first list by second, handles negative dividend :<br>
+    `val neg_list_div : int list -> int list -> int list`
+  - Converts normal list to bigint :<br>
+    `val cvt_listsub_to_sub : int list -> bigint`
 
 ## Instructions for submission:
 1 Your submission should have one file named structure_a0.ml which implements the interface as below.<br>
