@@ -14,17 +14,17 @@ module type BigInt = sig
   (* Addition *)
   val add: bigint -> bigint -> bigint
   (* Multiplication *)
-  (* val mult: bigint -> bigint -> bigint *)
+  val mult: bigint -> bigint -> bigint
   (* Subtraction *)
   val sub: bigint -> bigint -> bigint
   (* Quotient *)
-  (* val div: bigint -> bigint -> bigint *)
+  val div: bigint -> bigint -> bigint
   (* Remainder *)
-  (* val rem: bigint -> bigint -> bigint *)
+  val rem: bigint -> bigint -> bigint
   (* Unary negation *)
-  (* val minus: bigint -> bigint *)
+  val minus: bigint -> bigint
   (* Absolute value *)
-  (* val abs: bigint -> bigint *)
+  val abs: bigint -> bigint
 
   (* Comparison operations:  *)
   (* Equal *)
