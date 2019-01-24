@@ -13,15 +13,15 @@ module type BigInt = sig
 * Function:
   - [x] (* Addition:  *)<br>
   `val add: bigint -> bigint -> bigint`
-  - [ ] (* Multiplication *)<br>
+  - [x] (* Multiplication *)<br>
   `val mult: bigint -> bigint -> bigint`
   - [x] (* Subtraction *)<br>
   `val sub: bigint -> bigint -> bigint`
-  - [ ] (* Quotient *)<br>
+  - [X] (* Quotient *)<br>
   `val div: bigint -> bigint -> bigint`
-  - [ ] (* Remainder *)<br>
+  - [x] (* Remainder *)<br>
   `val rem: bigint -> bigint -> bigint`
-  - [ ] (* Unary negation *)<br>
+  - [x] (* Unary negation *)<br>
   `val minus: bigint -> bigint`
   - [X] (* Absolute value *)<br>
   `val abs: bigint -> bigint`
@@ -48,9 +48,14 @@ module type BigInt = sig
   - listcomp  a b
   - modulo a b
   - divide a b
+  - checklist a
   - list_add a b
   - negation a
   - list_subtract a b
+  - map fn a b
+  - list_mult a b
+  - list_div a b
+  - neq_list_div a b
   - cvt_listsub_to_sub a
 
 ## Instructions for submission:
