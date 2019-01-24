@@ -1,5 +1,5 @@
-(* open Signature_a0
-  module A0 : BigInt = struct *)
+open Signature_a0
+  module A0 : BigInt = struct
 (* class definition *)
 type sign = Neg | NonNeg;;
 type bigint = sign * int list;;
@@ -169,4 +169,4 @@ let minus a = match a with
 | (NonNeg, l) -> (Neg, l);;
 (* val minus: bigint -> bigint *)
 
-(* end *)
+end

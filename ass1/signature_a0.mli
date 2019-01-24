@@ -45,6 +45,19 @@ module type BigInt = sig
   val mk_big:  int -> bigint
 
   (* Define suitable exceptions when an operation is not defined. *)
+  val listcomp : 'a list -> 'a list -> int
+
+  val modulo : int -> int -> int
+  val divide : int -> int -> int
+  val checklist : int list -> int list
+  val list_add : int list -> int list -> int list
+  val negation : int list -> int list
+  val list_subtract : int list -> int list -> int list
+  val map : ('a -> 'b -> 'c) -> 'a -> 'b list -> 'c list 
+  val list_mult : int list -> int list -> int list 
+  val list_div : int list -> int list -> int list 
+  val neg_list_div : int list -> int list -> int list
+  val cvt_listsub_to_sub : int list -> sign * int list 
 end
 
 (* Instructions for submission:
