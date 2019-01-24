@@ -47,19 +47,19 @@ module type BigInt = sig
 * Helper Functions define: <br>
   - Unsigned List Comparator:<br>
     `val listcomp: 'a list -> 'a list -> int`
-  * Gives the modulo of numbers with proper handling for negative numbers:<br>
+  - [ ] Gives the modulo of numbers with proper handling for negative numbers:<br>
     `val modulo : int -> int -> int`   
-  * Divide Function handling negative numbers as well :<br>
+  - [ ] Divide Function handling negative numbers as well :<br>
     `val divide : int -> int -> int`
   - Remove waste 0's from the front of list :<br>
     `val checklist : int list -> int list`
   - Addition of 2 unsigned lists ( Takes inverted lists and outputs real value list ):<br>
     `val list_add : int list -> int list -> int list`
-  * Negation of Whole list :<br>
+  - [ ] Negation of Whole list :<br>
     `val negation : int list -> int list`
   - Subtraction of two unsigned lists ( Takes inverted lists and outputs order list ) : <br>
     `val list_subtract : int list -> int list -> int list`
-  * Mapping of a list : <br>
+  - [ ] Mapping of a list : <br>
     `val map : ('a -> 'b -> 'c) -> 'a -> 'b list -> 'c list`
   - Multiplication of 2 unsigned lists (takes list in ordered way ) :<br>
     `val list_mult : int list -> int list -> int list`
