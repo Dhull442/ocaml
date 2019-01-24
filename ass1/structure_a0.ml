@@ -104,9 +104,6 @@ if listcomp (List.rev a) (List.rev b) < 0 then nega (checklist (list_add b (nega
 else if  listcomp (List.rev a) (List.rev b) = 0 then [] 
 else checklist (list_add a (negation b));;
 
-let rec map fn a l = match l with 
-[] -> []
-| x::xs -> (fn a x) :: (map fn a xs);;
 
 
 (* Multiply lists *)
@@ -114,6 +111,10 @@ let rec map fn a l = match l with
 (* ans = a*b *)
 let list_mult a b = let multiply x1 x2 = x1*x2
 in 
+let rec map fn a l = match l with 
+[] -> []
+| x::xs -> (fn a x) :: (map fn a xs)
+in
 let rec bitbybit l1 l2 = match l2 with
 [] -> []
 | l2i :: l2s -> list_add (List.rev (bitbybit (l1 @ [0]) l2s)) (List.rev (map multiply l2i l1))

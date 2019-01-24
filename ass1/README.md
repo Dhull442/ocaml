@@ -59,7 +59,7 @@ module type BigInt = sig
     `val negation : int list -> int list`
   - Subtraction of two unsigned lists ( Takes inverted lists and outputs order list ) : <br>
     `val list_subtract : int list -> int list -> int list`
-  - Mapping of a list : <br>
+  * Mapping of a list : <br>
     `val map : ('a -> 'b -> 'c) -> 'a -> 'b list -> 'c list`
   - Multiplication of 2 unsigned lists (takes list in ordered way ) :<br>
     `val list_mult : int list -> int list -> int list`

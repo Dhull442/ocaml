@@ -49,7 +49,6 @@ module type BigInt = sig
   val checklist : int list -> int list
   val list_add : int list -> int list -> int list
   val list_subtract : int list -> int list -> int list
-  val map : ('a -> 'b -> 'c) -> 'a -> 'b list -> 'c list 
   val list_mult : int list -> int list -> int list 
   val list_div : int list -> int list -> int list 
   val neg_list_div : int list -> int list -> int list
