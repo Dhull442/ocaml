@@ -60,20 +60,23 @@ let geq a b = not (lt a b);;
 let leq a b = not (gt a b);;
 (* val leq:  bigint -> bigint -> bool *)
 
-(* Complementary functions *)
-let rec modulo a b = if a < 0 then modulo (a+b) b
-else a mod b;;
-let rec divide a b = if a < 0 then divide (a + b) b - 1
-else a / b ;;
 
 (* Checklist to elimintate waste 0's *)
 let rec checklist c = match c with
 [] -> []
 | ci :: cs -> if ( ci = 0 ) then checklist cs else c;;
+
 (* Inverted List Addition *)
 (* takes two inverted lists and gives back summation in normal sequence *)
 (* ans = !a + !b  *)
-let list_add a b = match a with
+let list_add a b =
+  let rec modulo a1 b1 = if a1 < 0 then modulo (a1+b1) b1
+  else a1 mod b1
+  in
+  let rec divide a1 b1 = if a1 < 0 then divide (a1 + b1) b1 - 1
+  else a1 / b1
+  in
+  match a with
  _ -> let rec add_carry a1 b1 carry = match a1 with
           [] -> (match b1 with
                  [] ->( if carry = 0 then [] else [carry] )
@@ -86,15 +89,17 @@ let list_add a b = match a with
 
 
 (* Negation of the List *)
-let rec negation a = match a with 
-[] -> []
-| li :: ls -> (-li)::(negation ls);; 
+
 
 (* Unsigned Subtract List *)
 (* ans = !a - !b  *)
 let list_subtract a b =
 let nega l = match l with [] -> [] | x :: xs -> (-x) :: xs 
 in 
+let rec negation a = match a with 
+[] -> []
+| li :: ls -> (-li)::(negation ls) 
+in
 if listcomp (List.rev a) (List.rev b) < 0 then nega (checklist (list_add b (negation a)))
 else if  listcomp (List.rev a) (List.rev b) = 0 then [] 
 else checklist (list_add a (negation b));;
