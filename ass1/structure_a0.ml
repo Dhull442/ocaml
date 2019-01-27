@@ -31,10 +31,9 @@ let print_num a =
     | xi :: xs -> ( string_of_int xi ) ^ ( tostring xs s )
   in
   match a with
-    ( Neg , l ) -> "-" ^ tostring l ""
+    (_,[]) -> "0"
+    | ( Neg , l ) -> "-" ^ tostring l ""
     | ( NonNeg , l ) -> tostring l "";;
-
-(* Comparison Operation: *)
 
 (* Helper function for comparing unsigned lists *)
 let listcomp  a b =
@@ -73,12 +72,11 @@ let eq a b = match a with
 
 (* Greater_than. *)
 let gt a b = match a with
-    ( _ , [] ) -> false
+  ( _ , [] ) -> ( match b with
     | ( Neg , _ ) -> true
     | ( _ , _ ) -> false )
   | ( NonNeg , al ) -> ( match b with
     ( _  ,  [] ) -> true
-    ( _ , [] ) -> ( match b with
     | ( Neg , _ ) -> true
     | ( NonNeg , bl ) ->
       if listcomp al bl > 0 then true
@@ -181,7 +179,7 @@ let list_mult a b =
   (* Bit by bit Multiplication function *)
   let rec bitbybit l1 l2 = match l2 with
     [] -> []
-    | l2i :: l2s -> list_add ( bitbybit ( 0 :: l1 ) l2s ) ( map multiply l2i l1 )
+    | l2i :: l2s -> List.rev (list_add ( bitbybit ( 0 :: l1 ) l2s ) ( map multiply l2i l1 ))
   in
   checklist ( List.rev ( bitbybit (List.rev a) ( List.rev b ) ) );;
 
@@ -273,10 +271,10 @@ let rem a b =  match a with
   | ( NonNeg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
     | ( NonNeg , bl ) -> ( NonNeg , get 2 ( list_div ( List.rev al ) ( List.rev bl ) ) )
-    | ( Neg , bl ) -> ( Neg , get 2 ( list_div ( List.rev al ) ( List.rev bl ) ) ) )
+    | ( Neg , bl ) -> ( NonNeg , get 2 ( list_div ( List.rev al ) ( List.rev bl ) ) ) )
   | ( Neg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
-    | ( NonNeg , bl ) ->  ( Neg , get 2 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) )
+    | ( NonNeg , bl ) ->  ( NonNeg , get 2 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) )
     | ( Neg , bl ) -> ( NonNeg , get 2 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) ) );;
 
 (* Absolute value *)

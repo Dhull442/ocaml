@@ -1,5 +1,6 @@
+2017CS10370 - [Saksham Dhull](https://github.com/Dhull442)
 # A Bigint package
-This is a preliminary assignment which will be used in following assignments.  In this assignment, you will write in OCaml a BIGNUM package  where you will implement arithmetic for arbitrarily large numbers, using lists of digits to implement an integer.
+This is a preliminary assignment which will be used in following assignments.  In this assignment, you will write in OCaml a BIGNUM package where you will implement arithmetic for arbitrarily large numbers, using lists of digits to implement an integer.
 <br>
 module type BigInt = sig
 Typedef:<br>
