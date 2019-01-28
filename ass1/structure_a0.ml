@@ -114,11 +114,11 @@ let geq a b = not ( lt a b );;
 let leq a b = not ( gt a b );;
 
 
-(* Checklist to elimintate waste 0's *)
-let rec checklist c = match c with
+(* trim_initial_zeros to elimintate waste 0's *)
+let rec trim_initial_zeros c = match c with
   [] -> []
   | ci :: cs ->
-    if ci = 0 then checklist cs
+    if ci = 0 then trim_initial_zeros cs
     else c;;
 
 (* Inverted List Addition *)
@@ -144,7 +144,7 @@ let list_add a b =
       [] -> add_carry [] a1 carry
       | b1i :: b1s -> ( modulo ( a1i + b1i + carry ) 10 ) :: add_carry a1s b1s ( divide ( a1i + b1i + carry ) 10 ) )
   in
-  checklist ( List.rev ( add_carry a b 0 ) );;
+  trim_initial_zeros ( List.rev ( add_carry a b 0 ) );;
 
 (* Unsigned Subtract List *)
 (* Subtracts second list from first *)
@@ -161,9 +161,9 @@ let list_subtract a b =
     [] -> []
     | li :: ls -> ( -li )::( negation ls )
   in
-  if listcomp ( List.rev a ) ( List.rev b ) < 0 then negative_at_front ( checklist ( list_add b ( negation a ) ) )
+  if listcomp ( List.rev a ) ( List.rev b ) < 0 then negative_at_front ( trim_initial_zeros ( list_add b ( negation a ) ) )
   else if listcomp ( List.rev a ) ( List.rev b ) = 0 then []
-       else checklist ( list_add a ( negation b ) );;
+       else trim_initial_zeros ( list_add a ( negation b ) );;
 
 (* Multiply lists *)
 (* check for zero lists in mult function itself *)
@@ -181,7 +181,7 @@ let list_mult a b =
     [] -> []
     | l2i :: l2s -> List.rev (list_add ( bitbybit ( 0 :: l1 ) l2s ) ( map multiply l2i l1 ))
   in
-  checklist ( List.rev ( bitbybit (List.rev a) ( List.rev b ) ) );;
+  trim_initial_zeros ( List.rev ( bitbybit (List.rev a) ( List.rev b ) ) );;
 
 (* Function for obtaining nth element of a tuple *)
 let get n t = match n with
@@ -190,22 +190,38 @@ let get n t = match n with
   | _ -> raise IndexOutOfBound;;
 
 (* Unsigned List div *)
-(* Take inverted list as input and return ans as normal list *)
-(* ans = !a / !b  *)
-let rec list_div a b =
-  if ( listcomp ( List.rev a ) ( List.rev b ) < 0 ) then ( [] , List.rev a )
-  else match list_div ( List.rev ( list_subtract a b ) ) b with
-    ( qs , modulus ) -> ( list_add [1] ( List.rev ( qs ) ) , modulus );;
+(* Take normal list as input and return ans as tuple of inverted lists of quotient and Remainder *)
+(* !ans = a / b  *)
+let list_div a b = match b with
+[] -> raise InvalidInt
+| _ ->
+(* Division by subtracting multiple times *)
+let rec basic_list_div ta tb =
+  if ( listcomp ( List.rev ta ) ( List.rev tb ) < 0 ) then ( [] , ta )
+  else match basic_list_div ( List.rev ( list_subtract ta tb ) ) tb with
+    ( qs , modulus ) -> ( List.rev (list_add [1] qs ) , modulus )
+in
+let rec bitbybit ta tb tc =
+  if listcomp (List.rev (get 2 tc)) (List.rev tb) < 0 then (match ta with [] -> ( List.rev (trim_initial_zeros (List.rev (get 1 tc))), get 2 tc) | ai :: als -> bitbybit als tb (( 0 :: ( get 1 tc ) ), ai :: ( get 2 tc )) )
+  else  let k = basic_list_div (get 2 tc) tb in
+   bitbybit ta tb ( List.rev ( list_add (get 1 k) ( get 1 tc ) ) , get 2 k )
+  in
+  bitbybit a (List.rev b) ([],[]);;
+
 
 (* Unsigned List div for different signs *)
-(* ans = !a / !b *)
-let rec neg_list_div a b =
-  if ( listcomp ( List.rev a ) ( List.rev b ) <= 0 ) then ( [1] , list_subtract b a )
-  else match neg_list_div ( List.rev ( list_subtract a b ) ) b with
-    ( qs , modulus ) -> ( list_add [1] ( List.rev ( qs ) ) , modulus );;
+(* Take normal list as input and return ans as tuple of quotient and Remainder *)
+(* Takes care of keeping quotient and remainder positive *)
+(* ans = a / b *)
+let neg_list_div a b =
+let ans = list_div a b in
+match ans with
+(qs,[]) -> (List.rev qs, [])
+| (qs,rm) -> (list_add [1] qs, list_subtract (List.rev b) rm);;
 
 (* Convert subtracted list to bigint *)
-let cvt_listsub_to_sub a = match a with
+(* Taking care of -ve sign at the initial of list *)
+let convertListtoBigINT a = match a with
   [] -> ( NonNeg , [] )
   | x::xs ->
     if x < 0 then ( Neg , ( -x ) :: xs )
@@ -217,11 +233,11 @@ let add a b = match a with
   | ( NonNeg , al ) -> ( match b with
     ( _ , [] )-> a
     | ( NonNeg , bl ) -> ( NonNeg , list_add ( List.rev al ) ( List.rev bl ) )
-    | ( Neg , bl ) -> cvt_listsub_to_sub ( list_subtract ( List.rev al ) ( List.rev bl ) ) )
+    | ( Neg , bl ) -> convertListtoBigINT ( list_subtract ( List.rev al ) ( List.rev bl ) ) )
   | ( Neg , al ) -> ( match b with
     ( _ , [] )-> a
     | ( Neg , bl ) -> ( Neg , list_add ( List.rev al ) ( List.rev bl ) )
-    | ( NonNeg , bl ) -> cvt_listsub_to_sub ( list_subtract ( List.rev bl ) ( List.rev al ) ) ) ;;
+    | ( NonNeg , bl ) -> convertListtoBigINT ( list_subtract ( List.rev bl ) ( List.rev al ) ) ) ;;
 
 (* Subtraction *)
 let sub a b = match a with
@@ -231,11 +247,11 @@ let sub a b = match a with
   |  ( NonNeg , al ) -> ( match b with
     ( _ , [] )-> a
     | ( Neg , bl ) -> ( NonNeg , list_add ( List.rev al ) ( List.rev bl ) )
-    | ( NonNeg , bl ) ->  cvt_listsub_to_sub ( list_subtract ( List.rev al ) ( List.rev bl ) ) )
+    | ( NonNeg , bl ) ->  convertListtoBigINT ( list_subtract ( List.rev al ) ( List.rev bl ) ) )
   | ( Neg , al ) -> ( match b with
     ( _ , [] )-> a
     | ( NonNeg , bl ) -> ( Neg , list_add ( List.rev al ) ( List.rev bl ) )
-    | ( Neg , bl ) ->  cvt_listsub_to_sub ( list_subtract ( List.rev bl ) ( List.rev al ) ) ) ;;
+    | ( Neg , bl ) ->  convertListtoBigINT ( list_subtract ( List.rev bl ) ( List.rev al ) ) ) ;;
 
 (* Multiplication *)
 let mult a b = match a with
@@ -256,12 +272,12 @@ let div a b = match a with
     | ( _ , _ ) -> a )
   | ( NonNeg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
-    | ( NonNeg , bl ) -> ( NonNeg , get 1 ( list_div ( List.rev al ) ( List.rev bl ) ) )
-    | ( Neg , bl ) -> ( Neg , get 1 ( list_div ( List.rev al ) ( List.rev bl ) ) ) )
+    | ( NonNeg , bl ) -> ( NonNeg , List.rev ( get 1 ( list_div al bl ) ) )
+    | ( Neg , bl ) -> ( Neg , List.rev ( get 1 ( list_div al bl ) ) ) )
   | ( Neg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
-    | ( NonNeg , bl ) ->  ( Neg , get 1 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) )
-    | ( Neg , bl ) -> ( NonNeg , get 1 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) ) );;
+    | ( NonNeg , bl ) ->  ( Neg , get 1 ( neg_list_div al bl ) )
+    | ( Neg , bl ) -> ( NonNeg , get 1 ( neg_list_div al bl ) ) );;
 
 (* Remainder *)
 let rem a b =  match a with
@@ -270,12 +286,12 @@ let rem a b =  match a with
     | ( _ , _ ) -> a )
   | ( NonNeg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
-    | ( NonNeg , bl ) -> ( NonNeg , get 2 ( list_div ( List.rev al ) ( List.rev bl ) ) )
-    | ( Neg , bl ) -> ( NonNeg , get 2 ( list_div ( List.rev al ) ( List.rev bl ) ) ) )
+    | ( NonNeg , bl ) -> ( NonNeg , List.rev ( get 2 ( list_div al bl ) ) )
+    | ( Neg , bl ) -> ( NonNeg , List.rev ( get 2 ( list_div al bl ) ) ) )
   | ( Neg , al ) -> ( match b with
     ( _ , [] ) -> raise InvalidInt
-    | ( NonNeg , bl ) ->  ( NonNeg , get 2 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) )
-    | ( Neg , bl ) -> ( NonNeg , get 2 ( neg_list_div ( List.rev al ) ( List.rev bl ) ) ) );;
+    | ( NonNeg , bl ) ->  ( NonNeg , get 2 ( neg_list_div al bl ) )
+    | ( Neg , bl ) -> ( NonNeg , get 2 ( neg_list_div al bl ) ) );;
 
 (* Absolute value *)
 let abs a = match a with
