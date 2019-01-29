@@ -31,6 +31,7 @@ end
 Same instructions as Assignment 0
 
 Submit structure_a1.ml as follows
+#load "structure_a0.cmo"
 open Structure_a0.A0 (* Should be in same folder*)
 open Signature_a1 (* Should be in same folder*)
 module A1 : CalculatorLanguage = struct
