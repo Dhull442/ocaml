@@ -1,1 +1,4 @@
 _build/*
+ass2/_build/*
+*.cmo
+*.cmi
