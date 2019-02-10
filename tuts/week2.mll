@@ -47,7 +47,7 @@ let password = (letter*)spl_char+(letter_or_spl_char*)
   function that, in this case, returns a value of type 'token'. Notice that
   everything inside the curly braces can be any arbitrary OCaml expression. *)
 rule read = parse
-  (digits)'.'digits as f {Float (float_of_string f)}
+  '-'?(digits)'.'(digits) as f {Float (float_of_string f)}
 | integer as n           {Int (int_of_string n)}
 | id as s                {String s}
 | _                      {read lexbuf}
@@ -55,10 +55,14 @@ rule read = parse
 and readpasswd = parse
   password as p {Password p}
 
+and rec readbrac = parse
+  brac as x   {Password x}
+
 (* This last section within the curly braces is called the trailer. Some useful
 functions are defined here to be usable by clients. Notice how the rules are
 invoked as function calls with the input string as an argument. *)
 {
   let lexme s = read (Lexing.from_string s)
   let lexpwd s = readpasswd (Lexing.from_string s)
+  let lexbrac s = readbrac (Lexing.from_string s)
 }
