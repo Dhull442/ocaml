@@ -1,4 +1,6 @@
 _build/*
 ass2/_build/*
+ass3/_build/*
 *.cmo
 *.cmi
+*/*.zip

@@ -15,10 +15,15 @@ let rec print_tree tr = match tr with
   | N a -> "INT " ^ (string_of_int a)
   | _ -> raise Not_implemented
 ;;
-let rec print_answer tr = match tr with
+let rec print_answer tr =
+let rec print_list a = match a with
+  li :: ls -> (print_answer li)^","^(print_list ls)
+  | [] -> ")"
+in
+ match tr with
   Num a -> print_num a
   | Bool a -> string_of_bool a
-  | Tup (a,alist) -> ( string_of_int a ) ^ print_answer alist;
+  | Tup (a,alist) -> ( string_of_int a ) ^ "(" ^ (print_list alist)
 ;;
 
 
@@ -32,5 +37,9 @@ let parser s binding =
 (* Input is given as string *)
 let binding = Hashtbl.create 123456;;
 Hashtbl.add binding (Var "x") (N 10);;
+let getanswer p = match p with
+ (a,b,c) -> b;;
 
-let _ = (parser "5;" binding);;
+
+(* (parser "if (10 >= 20) \\/ T  then 10 + (20- 10) * 100 else 10 - 20 fi" binding);; *)
+let calc a = parser a binding;;
