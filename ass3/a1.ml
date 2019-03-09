@@ -39,7 +39,7 @@ let rec eval t =
   (* Unwrap bigint *)
   let nunwrap a = match a with
     Num a1 -> a1
-    | _ -> raise InvalidArgument
+    | _ -> raise (InvalidArgument)
   in
   (* unwrap booleans *)
   let bunwrap b = match b with
@@ -71,7 +71,7 @@ let rec eval t =
     | LessT ( a , b ) -> Bool ( lt ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
     | InParen a -> eval a
     | IfThenElse ( cond , caseT , caseF ) -> if ( bunwrap ( eval cond )  ) then ( eval caseT ) else ( eval caseF )
-    | Tuple ( intg , explist ) -> Tup ( intg , map eval explist )
+    | Tuple ( intg , explist ) -> if (List.length explist != intg) then raise InvalidArgument else Tup ( intg , map eval explist )
     | Project (  ( i , n ) , tree ) -> ( match ( eval tree ) with Tup ( size , alist ) -> ( if (  ( i <= n ) && ( n <= size )  ) then get i alist else raise InvalidArgument ) | _ -> raise InvalidArgument )
     | Plus ( a , b ) -> Num ( add ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
     | Minus ( a , b ) -> Num ( sub ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )

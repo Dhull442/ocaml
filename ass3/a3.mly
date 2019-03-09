@@ -52,7 +52,15 @@ constantN:
     | LP main RP                            { InParen($2) }
     | ID                                    { Var($1) }      /* To be interpreted as a variable name with string as tokenised */
     | INT                                   { N($1) }      /* To be interpreted as an integer with its value as tokenised   */
+    | LP int COMMA tuple RP                 { Tuple($2,$4) }
+    | PROJ LP int COMMA int RP main         { Project(($3,$5),$7) }
 ;
+int:
+    | INT                                   { $1 }
+tuple:
+    tuple COMMA main                      { $1 @[$3] }
+    | main                                { [$1] }
+
 constantB:
     NOT constantB                           { Not($2) }
     | LP main RP                            { InParen($2) }
