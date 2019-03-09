@@ -26,6 +26,7 @@ bool:
 and_expression:
     and_expression AND constantB            { Disjunction($1,$3) }
     | constantB                             { $1 }
+;
 arith:
     arith MINUS add_expression              { Minus($1,$3) }
     | add_expression                        { $1 }
@@ -56,17 +57,18 @@ constantN:
     | PROJ LP int COMMA int RP main         { Project(($3,$5),$7) }
 ;
 int:
-    | INT                                   { $1 }
+    INT                                   { $1 }
+;
 tuple:
     tuple COMMA main                      { $1 @[$3] }
     | main                                { [$1] }
-
+;
 constantB:
     NOT constantB                           { Not($2) }
     | LP main RP                            { InParen($2) }
     | TRUE                                  { B(true) }
     | FALSE                                 { B(false) }
-    | main EQ  main                         { Equals($1,$3) }
+    | main EQ main                         { Equals($1,$3) }
     | main GEQ main                         { GreaterTE($1,$3) }
     | main GTA main                         { GreaterT($1,$3) }
     | main LTA main                         { LessT($1,$3) }
