@@ -1,0 +1,1108 @@
+   0  $accept : %entry% $end
+
+   1  main : main OR and_expression
+   2       | and_expression
+
+   3  ifte : IF main THEN main ELSE main FI
+
+   4  and_expression : and_expression AND arith
+   5                 | arith
+
+   6  arith : arith MINUS add_expression
+   7        | add_expression
+
+   8  add_expression : add_expression PLUS mult_expression
+   9                 | mult_expression
+
+  10  mult_expression : mult_expression MUL div_expression
+  11                  | div_expression
+
+  12  div_expression : div_expression DIV rem_expression
+  13                 | rem_expression
+
+  14  rem_expression : rem_expression MOD constantN
+  15                 | constantN
+
+  16  constantN : BOOL
+  17            | ID
+  18            | INT
+  19            | ABS constantN
+  20            | NEG constantN
+  21            | LP main RP
+  22            | PROJ LP int COMMA int RP tuple
+  23            | NOT constantN
+  24            | constantN EQ constantN
+  25            | constantN GTA constantN
+  26            | constantN LTA constantN
+  27            | ifte
+
+  28  int : INT
+
+  29  tuple : LP int COMMA tuplelist RP
+  30        | ID
+
+  31  tuplelist : tuplelist COMMA main
+  32            | main
+
+  33  %entry% : '\001' main
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . main  (33)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 12
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	constantN : ABS . constantN  (19)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 21
+
+
+state 4
+	constantN : NEG . constantN  (20)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 22
+
+
+state 5
+	constantN : LP . main RP  (21)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 23
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 6
+	constantN : NOT . constantN  (23)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 24
+
+
+state 7
+	ifte : IF . main THEN main ELSE main FI  (3)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 25
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 8
+	constantN : PROJ . LP int COMMA int RP tuple  (22)
+
+	LP  shift 26
+	.  error
+
+
+state 9
+	constantN : INT .  (18)
+
+	.  reduce 18
+
+
+state 10
+	constantN : BOOL .  (16)
+
+	.  reduce 16
+
+
+state 11
+	constantN : ID .  (17)
+
+	.  reduce 17
+
+
+state 12
+	main : main . OR and_expression  (1)
+	%entry% : '\001' main .  (33)
+
+	OR  shift 27
+	$end  reduce 33
+
+
+state 13
+	main : and_expression .  (2)
+	and_expression : and_expression . AND arith  (4)
+
+	AND  shift 28
+	$end  reduce 2
+	RP  reduce 2
+	OR  reduce 2
+	THEN  reduce 2
+	ELSE  reduce 2
+	FI  reduce 2
+	COMMA  reduce 2
+
+
+state 14
+	constantN : ifte .  (27)
+
+	.  reduce 27
+
+
+state 15
+	and_expression : arith .  (5)
+	arith : arith . MINUS add_expression  (6)
+
+	MINUS  shift 29
+	$end  reduce 5
+	RP  reduce 5
+	AND  reduce 5
+	OR  reduce 5
+	THEN  reduce 5
+	ELSE  reduce 5
+	FI  reduce 5
+	COMMA  reduce 5
+
+
+state 16
+	arith : add_expression .  (7)
+	add_expression : add_expression . PLUS mult_expression  (8)
+
+	PLUS  shift 30
+	$end  reduce 7
+	MINUS  reduce 7
+	RP  reduce 7
+	AND  reduce 7
+	OR  reduce 7
+	THEN  reduce 7
+	ELSE  reduce 7
+	FI  reduce 7
+	COMMA  reduce 7
+
+
+state 17
+	add_expression : mult_expression .  (9)
+	mult_expression : mult_expression . MUL div_expression  (10)
+
+	MUL  shift 31
+	$end  reduce 9
+	PLUS  reduce 9
+	MINUS  reduce 9
+	RP  reduce 9
+	AND  reduce 9
+	OR  reduce 9
+	THEN  reduce 9
+	ELSE  reduce 9
+	FI  reduce 9
+	COMMA  reduce 9
+
+
+state 18
+	mult_expression : div_expression .  (11)
+	div_expression : div_expression . DIV rem_expression  (12)
+
+	DIV  shift 32
+	$end  reduce 11
+	PLUS  reduce 11
+	MINUS  reduce 11
+	MUL  reduce 11
+	RP  reduce 11
+	AND  reduce 11
+	OR  reduce 11
+	THEN  reduce 11
+	ELSE  reduce 11
+	FI  reduce 11
+	COMMA  reduce 11
+
+
+state 19
+	div_expression : rem_expression .  (13)
+	rem_expression : rem_expression . MOD constantN  (14)
+
+	MOD  shift 33
+	$end  reduce 13
+	PLUS  reduce 13
+	MINUS  reduce 13
+	MUL  reduce 13
+	DIV  reduce 13
+	RP  reduce 13
+	AND  reduce 13
+	OR  reduce 13
+	THEN  reduce 13
+	ELSE  reduce 13
+	FI  reduce 13
+	COMMA  reduce 13
+
+
+state 20
+	rem_expression : constantN .  (15)
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 15
+	PLUS  reduce 15
+	MINUS  reduce 15
+	MUL  reduce 15
+	DIV  reduce 15
+	MOD  reduce 15
+	RP  reduce 15
+	AND  reduce 15
+	OR  reduce 15
+	THEN  reduce 15
+	ELSE  reduce 15
+	FI  reduce 15
+	COMMA  reduce 15
+
+
+21: shift/reduce conflict (shift 34, reduce 19) on EQ
+21: shift/reduce conflict (shift 35, reduce 19) on GTA
+21: shift/reduce conflict (shift 36, reduce 19) on LTA
+state 21
+	constantN : ABS constantN .  (19)
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 19
+	PLUS  reduce 19
+	MINUS  reduce 19
+	MUL  reduce 19
+	DIV  reduce 19
+	MOD  reduce 19
+	RP  reduce 19
+	AND  reduce 19
+	OR  reduce 19
+	THEN  reduce 19
+	ELSE  reduce 19
+	FI  reduce 19
+	COMMA  reduce 19
+
+
+22: shift/reduce conflict (shift 34, reduce 20) on EQ
+22: shift/reduce conflict (shift 35, reduce 20) on GTA
+22: shift/reduce conflict (shift 36, reduce 20) on LTA
+state 22
+	constantN : NEG constantN .  (20)
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 20
+	PLUS  reduce 20
+	MINUS  reduce 20
+	MUL  reduce 20
+	DIV  reduce 20
+	MOD  reduce 20
+	RP  reduce 20
+	AND  reduce 20
+	OR  reduce 20
+	THEN  reduce 20
+	ELSE  reduce 20
+	FI  reduce 20
+	COMMA  reduce 20
+
+
+state 23
+	main : main . OR and_expression  (1)
+	constantN : LP main . RP  (21)
+
+	RP  shift 37
+	OR  shift 27
+	.  error
+
+
+24: shift/reduce conflict (shift 34, reduce 23) on EQ
+24: shift/reduce conflict (shift 35, reduce 23) on GTA
+24: shift/reduce conflict (shift 36, reduce 23) on LTA
+state 24
+	constantN : NOT constantN .  (23)
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 23
+	PLUS  reduce 23
+	MINUS  reduce 23
+	MUL  reduce 23
+	DIV  reduce 23
+	MOD  reduce 23
+	RP  reduce 23
+	AND  reduce 23
+	OR  reduce 23
+	THEN  reduce 23
+	ELSE  reduce 23
+	FI  reduce 23
+	COMMA  reduce 23
+
+
+state 25
+	main : main . OR and_expression  (1)
+	ifte : IF main . THEN main ELSE main FI  (3)
+
+	OR  shift 27
+	THEN  shift 38
+	.  error
+
+
+state 26
+	constantN : PROJ LP . int COMMA int RP tuple  (22)
+
+	INT  shift 39
+	.  error
+
+	int  goto 40
+
+
+state 27
+	main : main OR . and_expression  (1)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	and_expression  goto 41
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 28
+	and_expression : and_expression AND . arith  (4)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	arith  goto 42
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 29
+	arith : arith MINUS . add_expression  (6)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	add_expression  goto 43
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 30
+	add_expression : add_expression PLUS . mult_expression  (8)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	mult_expression  goto 44
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 31
+	mult_expression : mult_expression MUL . div_expression  (10)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	div_expression  goto 45
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 32
+	div_expression : div_expression DIV . rem_expression  (12)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	rem_expression  goto 46
+	constantN  goto 20
+
+
+state 33
+	rem_expression : rem_expression MOD . constantN  (14)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 47
+
+
+state 34
+	constantN : constantN EQ . constantN  (24)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 48
+
+
+state 35
+	constantN : constantN GTA . constantN  (25)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 49
+
+
+state 36
+	constantN : constantN LTA . constantN  (26)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	ifte  goto 14
+	constantN  goto 50
+
+
+state 37
+	constantN : LP main RP .  (21)
+
+	.  reduce 21
+
+
+state 38
+	ifte : IF main THEN . main ELSE main FI  (3)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 51
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 39
+	int : INT .  (28)
+
+	.  reduce 28
+
+
+state 40
+	constantN : PROJ LP int . COMMA int RP tuple  (22)
+
+	COMMA  shift 52
+	.  error
+
+
+state 41
+	main : main OR and_expression .  (1)
+	and_expression : and_expression . AND arith  (4)
+
+	AND  shift 28
+	$end  reduce 1
+	RP  reduce 1
+	OR  reduce 1
+	THEN  reduce 1
+	ELSE  reduce 1
+	FI  reduce 1
+	COMMA  reduce 1
+
+
+state 42
+	and_expression : and_expression AND arith .  (4)
+	arith : arith . MINUS add_expression  (6)
+
+	MINUS  shift 29
+	$end  reduce 4
+	RP  reduce 4
+	AND  reduce 4
+	OR  reduce 4
+	THEN  reduce 4
+	ELSE  reduce 4
+	FI  reduce 4
+	COMMA  reduce 4
+
+
+state 43
+	arith : arith MINUS add_expression .  (6)
+	add_expression : add_expression . PLUS mult_expression  (8)
+
+	PLUS  shift 30
+	$end  reduce 6
+	MINUS  reduce 6
+	RP  reduce 6
+	AND  reduce 6
+	OR  reduce 6
+	THEN  reduce 6
+	ELSE  reduce 6
+	FI  reduce 6
+	COMMA  reduce 6
+
+
+state 44
+	add_expression : add_expression PLUS mult_expression .  (8)
+	mult_expression : mult_expression . MUL div_expression  (10)
+
+	MUL  shift 31
+	$end  reduce 8
+	PLUS  reduce 8
+	MINUS  reduce 8
+	RP  reduce 8
+	AND  reduce 8
+	OR  reduce 8
+	THEN  reduce 8
+	ELSE  reduce 8
+	FI  reduce 8
+	COMMA  reduce 8
+
+
+state 45
+	mult_expression : mult_expression MUL div_expression .  (10)
+	div_expression : div_expression . DIV rem_expression  (12)
+
+	DIV  shift 32
+	$end  reduce 10
+	PLUS  reduce 10
+	MINUS  reduce 10
+	MUL  reduce 10
+	RP  reduce 10
+	AND  reduce 10
+	OR  reduce 10
+	THEN  reduce 10
+	ELSE  reduce 10
+	FI  reduce 10
+	COMMA  reduce 10
+
+
+state 46
+	div_expression : div_expression DIV rem_expression .  (12)
+	rem_expression : rem_expression . MOD constantN  (14)
+
+	MOD  shift 33
+	$end  reduce 12
+	PLUS  reduce 12
+	MINUS  reduce 12
+	MUL  reduce 12
+	DIV  reduce 12
+	RP  reduce 12
+	AND  reduce 12
+	OR  reduce 12
+	THEN  reduce 12
+	ELSE  reduce 12
+	FI  reduce 12
+	COMMA  reduce 12
+
+
+state 47
+	rem_expression : rem_expression MOD constantN .  (14)
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 14
+	PLUS  reduce 14
+	MINUS  reduce 14
+	MUL  reduce 14
+	DIV  reduce 14
+	MOD  reduce 14
+	RP  reduce 14
+	AND  reduce 14
+	OR  reduce 14
+	THEN  reduce 14
+	ELSE  reduce 14
+	FI  reduce 14
+	COMMA  reduce 14
+
+
+48: shift/reduce conflict (shift 34, reduce 24) on EQ
+48: shift/reduce conflict (shift 35, reduce 24) on GTA
+48: shift/reduce conflict (shift 36, reduce 24) on LTA
+state 48
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN EQ constantN .  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 24
+	PLUS  reduce 24
+	MINUS  reduce 24
+	MUL  reduce 24
+	DIV  reduce 24
+	MOD  reduce 24
+	RP  reduce 24
+	AND  reduce 24
+	OR  reduce 24
+	THEN  reduce 24
+	ELSE  reduce 24
+	FI  reduce 24
+	COMMA  reduce 24
+
+
+49: shift/reduce conflict (shift 34, reduce 25) on EQ
+49: shift/reduce conflict (shift 35, reduce 25) on GTA
+49: shift/reduce conflict (shift 36, reduce 25) on LTA
+state 49
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN GTA constantN .  (25)
+	constantN : constantN . LTA constantN  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 25
+	PLUS  reduce 25
+	MINUS  reduce 25
+	MUL  reduce 25
+	DIV  reduce 25
+	MOD  reduce 25
+	RP  reduce 25
+	AND  reduce 25
+	OR  reduce 25
+	THEN  reduce 25
+	ELSE  reduce 25
+	FI  reduce 25
+	COMMA  reduce 25
+
+
+50: shift/reduce conflict (shift 34, reduce 26) on EQ
+50: shift/reduce conflict (shift 35, reduce 26) on GTA
+50: shift/reduce conflict (shift 36, reduce 26) on LTA
+state 50
+	constantN : constantN . EQ constantN  (24)
+	constantN : constantN . GTA constantN  (25)
+	constantN : constantN . LTA constantN  (26)
+	constantN : constantN LTA constantN .  (26)
+
+	EQ  shift 34
+	GTA  shift 35
+	LTA  shift 36
+	$end  reduce 26
+	PLUS  reduce 26
+	MINUS  reduce 26
+	MUL  reduce 26
+	DIV  reduce 26
+	MOD  reduce 26
+	RP  reduce 26
+	AND  reduce 26
+	OR  reduce 26
+	THEN  reduce 26
+	ELSE  reduce 26
+	FI  reduce 26
+	COMMA  reduce 26
+
+
+state 51
+	main : main . OR and_expression  (1)
+	ifte : IF main THEN main . ELSE main FI  (3)
+
+	OR  shift 27
+	ELSE  shift 53
+	.  error
+
+
+state 52
+	constantN : PROJ LP int COMMA . int RP tuple  (22)
+
+	INT  shift 39
+	.  error
+
+	int  goto 54
+
+
+state 53
+	ifte : IF main THEN main ELSE . main FI  (3)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 55
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 54
+	constantN : PROJ LP int COMMA int . RP tuple  (22)
+
+	RP  shift 56
+	.  error
+
+
+state 55
+	main : main . OR and_expression  (1)
+	ifte : IF main THEN main ELSE main . FI  (3)
+
+	OR  shift 27
+	FI  shift 57
+	.  error
+
+
+state 56
+	constantN : PROJ LP int COMMA int RP . tuple  (22)
+
+	LP  shift 58
+	ID  shift 59
+	.  error
+
+	tuple  goto 60
+
+
+state 57
+	ifte : IF main THEN main ELSE main FI .  (3)
+
+	.  reduce 3
+
+
+state 58
+	tuple : LP . int COMMA tuplelist RP  (29)
+
+	INT  shift 39
+	.  error
+
+	int  goto 61
+
+
+state 59
+	tuple : ID .  (30)
+
+	.  reduce 30
+
+
+state 60
+	constantN : PROJ LP int COMMA int RP tuple .  (22)
+
+	.  reduce 22
+
+
+state 61
+	tuple : LP int . COMMA tuplelist RP  (29)
+
+	COMMA  shift 62
+	.  error
+
+
+state 62
+	tuple : LP int COMMA . tuplelist RP  (29)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 63
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+	tuplelist  goto 64
+
+
+state 63
+	main : main . OR and_expression  (1)
+	tuplelist : main .  (32)
+
+	OR  shift 27
+	RP  reduce 32
+	COMMA  reduce 32
+
+
+state 64
+	tuple : LP int COMMA tuplelist . RP  (29)
+	tuplelist : tuplelist . COMMA main  (31)
+
+	RP  shift 65
+	COMMA  shift 66
+	.  error
+
+
+state 65
+	tuple : LP int COMMA tuplelist RP .  (29)
+
+	.  reduce 29
+
+
+state 66
+	tuplelist : tuplelist COMMA . main  (31)
+
+	ABS  shift 3
+	NEG  shift 4
+	LP  shift 5
+	NOT  shift 6
+	IF  shift 7
+	PROJ  shift 8
+	INT  shift 9
+	BOOL  shift 10
+	ID  shift 11
+	.  error
+
+	main  goto 67
+	and_expression  goto 13
+	ifte  goto 14
+	arith  goto 15
+	add_expression  goto 16
+	mult_expression  goto 17
+	div_expression  goto 18
+	rem_expression  goto 19
+	constantN  goto 20
+
+
+state 67
+	main : main . OR and_expression  (1)
+	tuplelist : tuplelist COMMA main .  (31)
+
+	OR  shift 27
+	RP  reduce 31
+	COMMA  reduce 31
+
+
+State 21 contains 3 shift/reduce conflicts.
+State 22 contains 3 shift/reduce conflicts.
+State 24 contains 3 shift/reduce conflicts.
+State 48 contains 3 shift/reduce conflicts.
+State 49 contains 3 shift/reduce conflicts.
+State 50 contains 3 shift/reduce conflicts.
+
+
+31 terminals, 14 nonterminals
+34 grammar rules, 68 states

@@ -1,9 +1,11 @@
 open A0
  (* code goes here *)
 type answer = Num of bigint | Bool of bool | Tup of int * ( answer list );;
+(* The type of value returned by the definitional interpreter. *)
+type value = NumVal of int | BoolVal of bool | TupVal of int * (value list);;
 
-type exptree = Done
-  | N of int (* Integer constant *)
+type exptree =
+    N of int (* Integer constant *)
   | B of bool (* Boolean constant *)
   | Var of string (* variable *)
   | Conjunction of exptree * exptree (* binary operators on booleans /\ *)
@@ -26,25 +28,40 @@ type exptree = Done
   | Negative of exptree       (* unary operators on booleans *)
   | Abs of exptree;;        (* unary operators on integers *)
 
-type opcode = NCONST of bigint | PLUS | TIMES | MINUS | DIV | REM | ABS | UNARYMINUS
+type opcode = VAR of string | NCONST of bigint | PLUS | MULT | MINUS | DIV | REM | ABS | UNARYMINUS
     | EQS | GTE | LTE | GT | LT | PAREN
     | BCONST of bool | CONJ | DISJ | NOT
-    | IFTE | TUPLE of int | PROJ of int;;
+    | IFTE | TUPLE of int | PROJ of int*int;;
 
  (* Excpetions *)
 exception InvalidArgument;;
 exception IndexOutOfBound;;
  (* Eval function using simple recursive calls *)
-let rec eval t =
+let rec eval t rho =
+  (* Provides +ve modulo  *)
+  let rec modulo a1 b1 =
+    if a1 < 0 then modulo ( a1 + b1 ) b1
+    else a1 mod b1
+  in
+  (* Provides accurate quotient with +ve modulo *)
+  let rec divide a1 b1 =
+    if a1 < 0 then ( divide ( a1 + b1 ) b1 ) - 1
+    else a1 / b1
+  in
+  let absolute a =
+  if( a < 0 ) then -a else a
+  in
   (* Unwrap bigint *)
   let nunwrap a = match a with
-    Num a1 -> a1
+    NumVal a1 -> a1
     | _ -> raise (InvalidArgument)
   in
   (* unwrap booleans *)
   let bunwrap b = match b with
-    Bool b1 -> b1
+    BoolVal b1 -> b1
     | _ -> raise InvalidArgument
+  in
+  let simpleeval a = eval a rho
   in
   (* mapping function *)
   let rec map func a = match a with
@@ -57,33 +74,32 @@ let rec eval t =
   | _ -> raise IndexOutOfBound
   in
   match t with
-      Done -> raise InvalidArgument
-    | N number -> Num ( mk_big number )
-    | B boolean -> Bool boolean
-    | Var str -> raise InvalidArgument
-    | Conjunction ( a , b ) -> Bool (  ( bunwrap ( eval a )  ) || ( bunwrap ( eval b )  )  )
-    | Disjunction ( a , b ) -> Bool (  ( bunwrap ( eval a )  ) && ( bunwrap ( eval b )  )  )
-    | Not t -> Bool ( not ( bunwrap ( eval t )  )  )
-    | Equals ( a , b ) ->  Bool ( eq ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | GreaterTE ( a , b ) -> Bool ( geq ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | LessTE ( a , b ) -> Bool ( leq ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | GreaterT ( a , b ) -> Bool ( gt ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | LessT ( a , b ) -> Bool ( lt ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | InParen a -> eval a
-    | IfThenElse ( cond , caseT , caseF ) -> if ( bunwrap ( eval cond )  ) then ( eval caseT ) else ( eval caseF )
-    | Tuple ( intg , explist ) -> if (List.length explist != intg) then raise InvalidArgument else Tup ( intg , map eval explist )
-    | Project (  ( i , n ) , tree ) -> ( match ( eval tree ) with Tup ( size , alist ) -> ( if (  ( i <= n ) && ( n <= size )  ) then get i alist else raise InvalidArgument ) | _ -> raise InvalidArgument )
-    | Plus ( a , b ) -> Num ( add ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | Minus ( a , b ) -> Num ( sub ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | Mult ( a , b ) -> Num ( mult ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | Div ( a , b ) -> Num ( div ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | Rem ( a , b ) -> Num ( rem ( nunwrap ( eval a )  )  ( nunwrap ( eval b )  )  )
-    | Negative a -> Num ( minus ( nunwrap ( eval a )  )  )
-    | Abs a -> Num ( abs ( nunwrap ( eval a )  )  ) ;;
- (* val eval : exptree -> answer *)
+      N number -> NumVal ( number )
+    | Var str -> (rho str)
+    | B boolean -> BoolVal boolean
+    | Conjunction ( a , b ) -> BoolVal ( ( bunwrap ( eval a rho )  ) || ( bunwrap ( eval b rho) ) )
+    | Disjunction ( a , b ) -> BoolVal ( ( bunwrap ( eval a rho)  ) && ( bunwrap ( eval b rho)  )  )
+    | Not t -> BoolVal ( not ( bunwrap ( eval t rho ) ) )
+    | Equals ( a , b ) ->  BoolVal ( ( nunwrap ( eval a rho)  ) == ( nunwrap ( eval b rho)  )  )
+    | GreaterTE ( a , b ) -> BoolVal ( ( nunwrap ( eval a rho)  ) >= ( nunwrap ( eval b rho)  )  )
+    | LessTE ( a , b ) -> BoolVal ( ( nunwrap ( eval a rho)  ) <= ( nunwrap ( eval b rho)  )  )
+    | GreaterT ( a , b ) -> BoolVal ( ( nunwrap ( eval a rho)  ) > ( nunwrap ( eval b rho)  )  )
+    | LessT ( a , b ) -> BoolVal ( ( nunwrap ( eval a rho)  ) < ( nunwrap ( eval b rho)  )  )
+    | InParen a -> eval a rho
+    | IfThenElse ( cond , caseT , caseF ) -> if ( bunwrap ( eval cond rho)  ) then ( eval caseT rho) else ( eval caseF rho)
+    | Tuple ( intg , explist ) -> if (List.length explist != intg) then raise InvalidArgument else TupVal ( intg , map simpleeval explist)
+    | Project (  ( i , n ) , tree ) -> ( match ( eval tree rho) with TupVal ( size , alist ) -> ( if (  ( i <= n ) && ( n <= size )  ) then get i alist else raise InvalidArgument ) | _ -> raise InvalidArgument )
+    | Plus ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) + ( nunwrap ( eval b rho)  )  )
+    | Minus ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) - ( nunwrap ( eval b rho)  )  )
+    | Mult ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) * ( nunwrap ( eval b rho)  )  )
+    | Div ( a , b ) -> NumVal ( divide ( nunwrap ( eval a rho) ) ( nunwrap ( eval b rho) ) )
+    | Rem ( a , b ) -> NumVal ( modulo ( nunwrap ( eval a rho) ) ( nunwrap ( eval b rho) ) )
+    | Negative a -> NumVal ( -1 * ( nunwrap ( eval a rho)  )  )
+    | Abs a -> NumVal ( absolute ( nunwrap ( eval a rho)  )  ) ;;
+ (* val eval : exptree -> value *)
 
  (* Stackmc function with tailrecursion *)
-let rec stackmc bl ol =
+let rec stackmc bl binding ol =
  (* Unwrap bigint *)
 let nunwrap a = match a with
   Num a1 -> a1
@@ -111,27 +127,28 @@ let getT i tuple = match tuple with
 in
 match ol with
   [] -> List.hd bl
-| NCONST a :: ols-> stackmc (  ( Num a ) :: bl ) ols
-| PLUS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( add ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| MINUS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( sub ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| TIMES :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( mult ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| DIV :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( div ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| REM :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( rem ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| ABS :: ols -> ( match bl with el1 :: bls -> stackmc (  ( Num ( abs ( nunwrap el1 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| UNARYMINUS :: ols -> ( match bl with el1 :: bls-> stackmc (  ( Num ( minus ( nunwrap el1 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| EQS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( eq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| GTE :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( geq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| LTE :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( leq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| GT :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( gt ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| LT :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( lt ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| PAREN :: ols -> stackmc bl ols
-| BCONST b :: ols -> stackmc (  ( Bool b ) :: bl ) ols
-| CONJ :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool (  ( bunwrap el1 ) || ( bunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| DISJ :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool (  ( bunwrap el1 ) && ( bunwrap el2 )  )  ) :: bls ) ols | _ -> raise InvalidArgument )
-| NOT :: ols -> ( match bl with el :: bls -> stackmc (  ( Bool ( not ( bunwrap el )  )  ) ::bls ) ols| _ -> raise InvalidArgument )
-| IFTE :: ols -> ( match bl with caseF :: ( caseT :: ( cond :: bls )  ) -> ( if ( bunwrap cond ) then stackmc ( caseT :: bls ) ols else stackmc ( caseF :: bls ) ols ) | _ -> raise InvalidArgument )
-| TUPLE a :: ols -> ( let temp = (extractlist a [] bl) in stackmc (  ( Tup ( a , ( getT 1 temp )  )  ) :: ( getT 2 temp )  ) ols )
-| PROJ which :: ols -> ( match bl with Tup ( a , alist ) ::bls -> stackmc (  ( get which alist ) ::bls ) ols | _ -> raise InvalidArgument );;
+| VAR str :: ols -> stackmc ( ( binding str ) :: bl ) binding ols
+| NCONST a :: ols-> stackmc (  ( Num a ) :: bl ) binding ols
+| PLUS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( add ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| MINUS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( sub ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| MULT :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( mult ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| DIV :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( div ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| REM :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Num ( rem ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| ABS :: ols -> ( match bl with el1 :: bls -> stackmc (  ( Num ( abs ( nunwrap el1 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| UNARYMINUS :: ols -> ( match bl with el1 :: bls-> stackmc (  ( Num ( minus ( nunwrap el1 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| EQS :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( eq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| GTE :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( geq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| LTE :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( leq ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| GT :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( gt ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| LT :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool ( lt ( nunwrap el1 )  ( nunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| PAREN :: ols -> stackmc bl binding ols
+| BCONST b :: ols -> stackmc (  ( Bool b ) :: bl ) binding ols
+| CONJ :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool (  ( bunwrap el1 ) || ( bunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| DISJ :: ols -> ( match bl with el2 :: ( el1 :: bls ) -> stackmc (  ( Bool (  ( bunwrap el1 ) && ( bunwrap el2 )  )  ) :: bls ) binding ols | _ -> raise InvalidArgument )
+| NOT :: ols -> ( match bl with el :: bls -> stackmc (  ( Bool ( not ( bunwrap el )  )  ) ::bls ) binding ols | _ -> raise InvalidArgument )
+| IFTE :: ols -> ( match bl with caseF :: ( caseT :: ( cond :: bls )  ) -> ( if ( bunwrap cond ) then stackmc ( caseT :: bls ) binding ols else stackmc ( caseF :: bls ) binding ols ) | _ -> raise InvalidArgument )
+| TUPLE a :: ols -> ( let temp = (extractlist a [] bl) in stackmc (  ( Tup ( a , ( getT 1 temp )  )  ) :: ( getT 2 temp )  ) binding ols )
+| PROJ (which,tot) :: ols -> ( match bl with Tup ( a , alist ) ::bls -> stackmc (  ( get which alist ) ::bls ) binding ols | _ -> raise InvalidArgument );;
 (* | _ -> raise InvalidArgument *)
  (* val stackmc: ( bigint list ) -> ( opcode list ) -> bigint *)
 
@@ -144,7 +161,7 @@ let rec compile t =
   match t with
     N a -> [ NCONST ( mk_big a ) ]
   | B b ->  [ BCONST b ]
-  (* | Var str -> [] *)
+  | Var str -> [ VAR str ]
   | Conjunction ( a , b ) -> ( compile a ) @ ( compile b ) @ [ CONJ ]
   | Disjunction ( a , b ) -> ( compile a ) @ ( compile b ) @ [ DISJ ]
   | Not a -> ( compile a ) @ [ NOT ]
@@ -156,13 +173,12 @@ let rec compile t =
   | InParen ( a ) -> [ PAREN ] @ ( compile a )
   | IfThenElse ( cond , caseT , caseF ) -> ( compile cond ) @ ( compile caseT ) @ ( compile caseF ) @ [ IFTE ]
   | Tuple ( a , explist ) -> ( listcompile explist ) @ [TUPLE a]
-  | Project (  ( i , n ) , tree ) -> ( compile tree ) @ [ PROJ i ]
+  | Project (  ( i , n ) , tree ) -> ( compile tree ) @ [ PROJ (i,n) ]
   | Plus ( a , b ) -> ( compile a ) @ ( compile b ) @ [ PLUS ]
   | Minus ( a , b ) -> ( compile a ) @ ( compile b ) @ [ MINUS ]
-  | Mult ( a , b ) -> ( compile a ) @ ( compile b ) @ [ TIMES ]
+  | Mult ( a , b ) -> ( compile a ) @ ( compile b ) @ [ MULT ]
   | Div ( a , b ) -> ( compile a ) @ ( compile b ) @ [ DIV ]
   | Rem ( a , b ) -> ( compile a ) @ ( compile b ) @ [ REM ]
   | Negative a -> ( compile a ) @ [ UNARYMINUS ]
-  | Abs a -> ( compile a ) @ [ ABS ]
-  | _ -> raise InvalidArgument ;;
+  | Abs a -> ( compile a ) @ [ ABS ];;
  (* val compile: exptree -> opcode list *)

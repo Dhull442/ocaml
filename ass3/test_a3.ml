@@ -11,8 +11,7 @@ open A3;;
 exception Not_implemented
 (* Helper function to print *)
 let rec print_tree tr = match tr with
-  Done -> "\n"
-  | N a -> "INT " ^ (string_of_int a)
+   N a -> "INT " ^ (string_of_int a)
   | _ -> raise Not_implemented
 ;;
 let rec print_answer tr =
@@ -25,21 +24,32 @@ in
   | Bool a -> string_of_bool a
   | Tup (a,alist) -> ( string_of_int a ) ^ "(" ^ (print_list alist)
 ;;
-
-
-(* Parser accepts the expression as string and binding as hash map with variable to values (integer, boolean, tuple) *)
-let parser s binding =
-  let result = A3.main A2.read (Lexing.from_string s) in
-    (* Return the three versions as abstract syntax tree, value, compiled opcode*)
-    (result, (A1.eval result), (A1.compile result))
+let rec print_value tr = match tr with
+  NumVal a -> string_of_int a
+  | BoolVal a -> string_of_bool a
+  | _ -> raise Not_implemented
+;;
+let rec toAnswer v = match v with
+  NumVal a     -> Num (mk_big a)
+| BoolVal b    -> Bool b
+| TupVal (n,xs) -> Tup (n, List.map toAnswer xs)
 ;;
 
-(* Input is given as string *)
-let binding = Hashtbl.create 123456;;
-Hashtbl.add binding (Var "x") (N 10);;
-let getanswer p = match p with
- (a,b,c) -> b;;
+(* Input is given as string and output is an answer *)
+let binding rho s = toAnswer (rho s);;
 
+(* Parser accepts the expression as string and binding as hash map with variable to values (integer, boolean, tuple) *)
+let parser s rho =
+  let result = A3.main A2.read (Lexing.from_string s) in
+    (* Return the three versions as abstract syntax tree, value, compiled opcode*)
+    (result, (A1.eval result rho), (A1.stackmc [] (binding rho) (A1.compile result)))
+;;
+
+(* Input is given as string and output is a value *)
+let rho s = match s with
+   "X" -> NumVal 5
+|  "Y" -> BoolVal true
+|  "Z" -> TupVal (3, [NumVal 5; BoolVal true; NumVal 1]);;
 
 (* (parser "if (10 >= 20) \\/ T  then 10 + (20- 10) * 100 else 10 - 20 fi" binding);; *)
-let calc a = parser a binding;;
+let calc a = parser a rho;;

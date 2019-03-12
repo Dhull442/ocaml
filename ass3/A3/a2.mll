@@ -8,7 +8,7 @@
   - Tokens are defined in A3.mly
   - Return type is token and not token list
   - End of buffer is indicated by EOF token below
-  - There is no trailer. The scanner function is written in the wrapper file
+  - There is no trailer. The scanner function is written in the wrapper file (test_a3.ml)
 *)
 rule read = parse
    eof                { EOF }

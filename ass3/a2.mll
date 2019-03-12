@@ -23,8 +23,8 @@ let alphanum = ['A'-'Z']['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']*
 rule read = parse
   whitespace            { read lexbuf }
 | integer as n          { INT (int_of_string n) }
-| 'T'                   { TRUE }
-| 'F'                   { FALSE }
+| 'T'                   { BOOL (true) }
+| 'F'                   { BOOL (false) }
 | 'a''b''s'             { ABS }
 | '~'                   { NEG }
 | '+'                   { PLUS }
@@ -38,8 +38,8 @@ rule read = parse
 | 'n''o''t'             { NOT }
 | '/''\\'               { AND }
 | '\\''/'               { OR }
-| '>''='                { GEQ }
-| '<''='                { LEQ }
+(* | '>''='                { GEQ } *)
+(* | '<''='                { LEQ } *)
 | '='                   { EQ }
 | '>'                   { GTA }
 | '<'                   { LTA }
