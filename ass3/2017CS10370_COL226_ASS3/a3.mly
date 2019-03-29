@@ -51,7 +51,7 @@ ifte:
       IF main THEN main ELSE main FI          { IfThenElse($2,$4,$6) }
     | proj      {$1}
 proj:
-  PROJ LP int COMMA int RP tup        { Project(($3,$5),$7) }
+  PROJ LP int COMMA int RP main        { Project(($3,$5),$7) }
   | tup   {$1}
 tup:
   LP tuplelist RP               { Tuple(List.length $2 , $2) }

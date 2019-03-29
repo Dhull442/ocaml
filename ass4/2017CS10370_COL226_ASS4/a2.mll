@@ -1,17 +1,16 @@
- (* TOKEN definition in a3.mly *)
- {
-   open A3
-   exception Not_implemented;;
-   exception InvalidToken of char;;
- }
+{
+  open A3
+  exception InvalidToken of char;;
+}
 
- (*
-   Below is a dummy implementation. Please note the following
-   - Tokens are defined in A3.mly
-   - Return type is token and not token list
-   - End of buffer is indicated by EOF token below
-   - There is no trailer. The scanner function is written in the wrapper file
- *)
+(*
+  Below is a dummy implementation. Please note the following
+  - Tokens are defined in A3.mly
+  - Return type is token and not token list
+  - End of buffer is indicated by EOF token below
+  - There is no trailer. The scanner function is written in the wrapper file (test_a4.ml)
+*)
+
 (* REGEX PATTERNS *)
 
 let whitespace = [' ' '\n' '\t']+
@@ -21,34 +20,41 @@ let alphanum = ['A'-'Z']['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']*
 
 (* RULE *)
 rule read = parse
-  whitespace            { read lexbuf }
+ whitespace             { read lexbuf }
 | integer as n          { INT (int_of_string n) }
 | 'T'                   { BOOL (true) }
 | 'F'                   { BOOL (false) }
 | 'a''b''s'             { ABS }
-| '~'                   { NEG }
+| '~'                   { TILDA }
 | '+'                   { PLUS }
 | '-'                   { MINUS }
-| '*'                   { MUL }
-| '^'                   { EXP }
+| '*'                   { TIMES }
+(* | '^'                   { EXP } *)
 | 'd''i''v'             { DIV }
-| 'm''o''d'             { MOD }
+| 'm''o''d'             { REM }
 | '('                   { LP }
 | ')'                   { RP }
 | 'n''o''t'             { NOT }
-| '/''\\'               { AND }
-| '\\''/'               { OR }
+| '/''\\'               { DISJ }
+| '\\''/'               { CONJ }
 (* | '>''='                { GEQ } *)
 (* | '<''='                { LEQ } *)
 | '='                   { EQ }
-| '>'                   { GTA }
-| '<'                   { LTA }
+| '>'                   { GT }
+| '<'                   { LT }
 | 'i''f'                { IF }
 | 't''h''e''n'          { THEN }
 | 'e''l''s''e'          { ELSE }
 | 'f''i'                { FI }
 | 'd''e''f'             { DEF }
-| ';'                   { DELIMITER }
+| 'l''e''t'             { LET }
+| 'i''n'                { IN }
+| 'e''n''d'             { END }
+| '.'                   { DOT }
+| '\\'                  { BACKSLASH }
+| ';'                   { SEMICOLON }
+| '|''|'                { PARALLEL }
+| 'l''o''c''a''l'       { LOCAL }
 | ','                   { COMMA }
 | 'p''r''o''j'          { PROJ }
 | alphanum as s         { ID s }
