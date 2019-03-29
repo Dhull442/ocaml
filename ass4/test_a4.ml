@@ -55,7 +55,7 @@ let e = (parser "\\X.Y" rho);;
 let t = Tfunc (Tint, Tbool);;
 
 (* Type assumptions as a list of tuples of the form (variable name, type) *)
-let g = [("X", Tint), ("Y", Tbool), ("Z", Ttuple [Tint ; Tbool ; Tint]), ("W", Tfunc (Tint, Tbool))];;
+let g = [("X", Tint);("Y", Tbool);("Z", Ttuple [Tint ; Tbool ; Tint]);("W", Tfunc (Tint, Tbool))];;
 let d = (parser "def U = X ; def V = Y" rho);;
 let g_dash = [("U", Tint), ("V", Tbool)];;
 

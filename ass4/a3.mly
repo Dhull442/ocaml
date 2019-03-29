@@ -66,17 +66,18 @@ proj:
   | tup                               { $1 }
 tup:
   LP tuplelist RP                     { Tuple(List.length $2 , $2) }
-|  paren                              { $1 }
+|  func                              { $1 }
+;
+func:
+  BACKSLASH ID DOT paren               { FunctionAbstraction ($2,$4) }
+  | paren LP main RP                    { FunctionCall ($1,$3) }
+  | paren                         { $1 }
+;
 paren:
   LP main RP                          { InParen($2) }
-  /* | funcdef                           { $1 }
-  | LET mdef IN main END              { Let ($2,$4) } */
+  | constant                                 { $1 }
+  | LET mdef IN main END              { Let ($2,$4) }
 ;
-/* funcdef:
-  BACKSLASH ID DOT paren               { FunctionAbstraction ($2,$4) }
-  | main LP main RP                   { FunctionCall ($1,$3) }
-  | constant                          { $1 }
-; */
 constant:
      BOOL                             { B($1) }
     | ID                              { Var($1) }
