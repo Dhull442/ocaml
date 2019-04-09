@@ -12,7 +12,7 @@ open A4;;
 
 exception Not_implemented
 (* Helper function to print *)
-let rec print_tree tr = match tr with
+(* let rec print_tree tr = match tr with
   N a -> "INT " ^ (string_of_int a)
   | _ -> raise Not_implemented
 ;;
@@ -32,7 +32,7 @@ let rec print_def df = match df with
 ;;
 
 
-(* Input is given as value and output is an answer *)
+Input is given as value and output is an answer *)
 let rec toAnswer v = match v with
   NumVal a     -> Num (mk_big a)
 | BoolVal b    -> Bool b
@@ -54,17 +54,17 @@ let rho s = match s with
 ;;
 
 (* Sample parsing *)
-print_endline ( print_tree (exp_parser "5" rho));;
-print_endline ( print_def (def_parser "def A=5" rho));;
+(* print_endline ( print_tree (exp_parser "5" rho));;
+print_endline ( print_def (def_parser "def A=5" rho));; *)
 
 (* Sample test case *)
-let e = (exp_parser "\\X.Y" rho);;
-let t = Tfunc (Tint, Tbool);;
+(* let e = (exp_parser "\\X.Y" rho);;
+let t = Tfunc (Tint, Tbool);; *)
 
 (* Type assumptions as a list of tuples of the form (variable name, type) *)
-let g = [("X", Tint); ("Y", Tbool);("Z", Ttuple [Tint ; Tbool ; Tint]); ("W", Tfunc (Tint, Tbool))];;
-let d = (def_parser "def U = X ; def V = Y" rho);;
-let g_dash = [("U", Tint); ("V", Tbool)];;
+(* let g = [("X", Tint); ("Y", Tbool);("Z", Ttuple [Tint ; Tbool ; Tint]); ("W", Tfunc (Tint, Tbool))];; *)
+(* let d = (def_parser "def U = X ; def V = Y" rho);; *)
+(* let g_dash = [("U", Tint); ("V", Tbool)];; *)
 
-assert(hastype g e t);;
-assert(yields g d g_dash);;
+(* assert(hastype g e t);;
+assert(yields g d g_dash);; *)

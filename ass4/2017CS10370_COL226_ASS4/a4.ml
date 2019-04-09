@@ -6,7 +6,8 @@ exception Error of string;;
 
 let rec findtype g str = match g with
   li :: ls -> (match li with (a,b) -> (if a = str then b else findtype ls str) )
-  | [] -> raise (Error "No type defined for the given variable")
+  | [] -> Tunit
+  (* raise (Error "No type defined for the given variable") *)
 ;;
 
 let rec augment g g_dash =
@@ -79,7 +80,33 @@ match def with
     )
   | Local (l1,l2) -> (
       let g_d = gettypegdash g l1 in
-      augment g_d ((gettypegdash (augment g g_d)) l2));;
+      augment g_d ((gettypegdash (augment g g_d)) l2))
+and getfunctype g x func = match b with
+N a -> Tint
+| B a -> Tbool
+| Var a -> (findtype g a)
+| Abs a -> if(getexptype g a = Tint)  then Tint else raise InvalidArgument
+| Negative a ->if(getexptype g a = Tint) then Tint else raise InvalidArgument
+| Not a -> if getexptype g a = Tbool then Tbool else raise InvalidArgument
+| Add(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tint else raise InvalidArgument
+| Sub(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tint else raise InvalidArgument
+| Mult(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tint else raise InvalidArgument
+| Div(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tint else raise InvalidArgument
+| Rem(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tint else raise InvalidArgument
+| Conjunction(a,b) -> if (getexptype g a = Tbool) && (getexptype g b = Tbool) then Tbool else raise InvalidArgument
+| Disjunction(a,b) -> if (getexptype g a = Tbool) && (getexptype g b = Tbool) then Tbool else raise InvalidArgument
+| Equals(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tbool else raise InvalidArgument
+| GreaterTE(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tbool else raise InvalidArgument
+| LessTE(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tbool else raise InvalidArgument
+| GreaterT(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tbool else raise InvalidArgument
+| LessT(a,b) -> if (getexptype g a = Tint) && (getexptype g b = Tint) then Tbool else raise InvalidArgument
+| InParen a -> getexptype g a
+| IfThenElse (a,b,c) -> let k = getexptype g b in (if (getexptype g a= Tbool) && (k = getexptype g c) then k else raise InvalidArgument)
+| Tuple (a,b) ->  Ttuple ( getexptypelist g b )
+| Project ((i,n),tree) -> (match (getexptype g tree) with Ttuple ls -> (get (i-1) ls) | _ -> raise InvalidArgument)
+| Let (def, tree) -> getexptype (augment g (gettypegdash g def)) tree
+| FunctionAbstraction (a,b) -> Tfunc ((findtype g a), getexptype g b)
+| FunctionCall (a,b) -> let atype = getexptype g a and btype = getexptype g b in (match atype with Tfunc(at,bt) -> if (at = btype) then bt else raise InvalidArgument | _ -> raise InvalidArgument)
 
 (* hastype : ((string * exptype) list) -> exptree -> exptype -> bool *)
 let rec hastype g e t = try (getexptype g e = t) with _ -> false ;;
@@ -89,4 +116,4 @@ match a with
 li :: ls -> if (present li b) then equal ls b else false
 | [] -> true;;
 (* yields : ((string * exptree) list) -> definition -> ((string * exptree) list) -> bool *)
-let rec yields g d g_dash = let f = (gettypegdash g d) in if (List.length f = List.length g_dash) then equal f g_dash else false;;
+let rec yields g d g_dash = try (let f = (gettypegdash g d) in if (List.length f = List.length g_dash) then equal f g_dash else false) with _ -> false;;
