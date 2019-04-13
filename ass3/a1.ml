@@ -4,34 +4,44 @@ type answer = Num of bigint | Bool of bool | Tup of int * ( answer list );;
 (* The type of value returned by the definitional interpreter. *)
 type value = NumVal of int | BoolVal of bool | TupVal of int * (value list);;
 
-type exptree =
-    N of int (* Integer constant *)
-  | B of bool (* Boolean constant *)
-  | Var of string (* variable *)
-  | Conjunction of exptree * exptree (* binary operators on booleans /\ *)
-  | Disjunction of exptree * exptree (* binary operators on booleans \/ *)
+type  exptree =
+  Var of string (* variables starting with a Capital letter, represented as alphanumeric strings with underscores (_) and apostrophes (') *)
+  | N of int      (* Integer constant *)
+  | B of bool     (* Boolean constant *)
+  (* unary operators on integers *)
+  | Abs of exptree                   (* abs *)
+  | Negative of exptree              (* unary minus ~ *)
+  (* unary operators on booleans *)
   | Not of exptree
-  | Equals of exptree * exptree      (* comparison operations on integers *)
-  | GreaterTE of exptree * exptree   (* comparison operations on integers *)
-  | LessTE of exptree * exptree      (* comparison operations on integers *)
-  | GreaterT of exptree * exptree    (* comparison operations on integers *)
-  | LessT of exptree * exptree       (* comparison operations on integers *)
-  | InParen of exptree               (* expressions using parenthesis *)
-  | IfThenElse of exptree * exptree * exptree (* a conditional expression *)
-  | Tuple of int * ( exptree list )         (* creating n-tuples ( n >= 0 ) *)
-  | Project of ( int*int ) * exptree          (* projecting the i-th component of an expression ( which evaluates to an n-tuple, and 1 <= i <= n ) *)
-  | Plus of exptree * exptree        (* binary operators on integers *)
-  | Minus of exptree * exptree       (* binary operators on integers *)
-  | Mult of exptree * exptree        (* binary operators on integers *)
-  | Div of exptree * exptree         (* binary operators on integers *)
-  | Rem of exptree * exptree         (* binary operators on integers *)
-  | Negative of exptree       (* unary operators on booleans *)
-  | Abs of exptree;;        (* unary operators on integers *)
+  (* binary operators on integers *)
+  | Add of exptree * exptree         (* Addition + *)
+  | Sub of exptree * exptree         (* Subtraction - *)
+  | Mult of exptree * exptree        (* Multiplication * *)
+  | Div of exptree * exptree         (* div *)
+  | Rem of exptree * exptree         (* mod *)
+  (* binary operators on booleans *)
+  | Conjunction of exptree * exptree (* conjunction /\ *)
+  | Disjunction of exptree * exptree (* binary operators on booleans \/ *)
+  (* comparison operations on integers *)
+  | Equals of exptree * exptree      (* = *)
+  | GreaterTE of exptree * exptree   (* >= *)
+  | LessTE of exptree * exptree      (* <= *)
+  | GreaterT of exptree * exptree    (* > *)
+  | LessT of exptree * exptree       (* < *)
+  (* expressions using parenthesis *)
+  | InParen of exptree               (* ( ) *)
+  (* a conditional expression *)
+  | IfThenElse of exptree * exptree * exptree (* if then else fi  *)
+  (* creating n-tuples (n >= 0) *)
+  | Tuple of int * (exptree list)
+  (* projecting the i-th component of an expression (which evaluates to an n-tuple, and 1 <= i <= n) *)
+  | Project of (int*int) * exptree ;;  (* Proj((i,n), e)  0 < i <= n *)
 
-type opcode = VAR of string | NCONST of bigint | PLUS | MULT | MINUS | DIV | REM | ABS | UNARYMINUS
-    | EQS | GTE | LTE | GT | LT | PAREN
-    | BCONST of bool | CONJ | DISJ | NOT
-    | IFTE | TUPLE of int | PROJ of int*int;;
+(* opcodes of the stack machine (in the same sequence as above) *)
+type opcode = VAR of string | NCONST of bigint | BCONST of bool | ABS | UNARYMINUS | NOT
+  | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
+  | PAREN | IFTE | TUPLE of int | PROJ of int*int
+;;
 
  (* Excpetions *)
 exception InvalidArgument;;
@@ -90,8 +100,8 @@ let rec eval t rho =
     | IfThenElse ( cond , caseT , caseF ) -> if ( bunwrap ( eval cond rho)  ) then ( eval caseT rho) else ( eval caseF rho)
     | Tuple ( intg , explist ) -> if (List.length explist != intg) then raise InvalidArgument else TupVal ( intg , map simpleeval explist)
     | Project (  ( i , n ) , tree ) -> ( match ( eval tree rho ) with TupVal ( size , alist ) -> ( if (  ( i <= n ) && ( n <= size )  ) then get i alist else get 1 alist ) | _ -> raise (Error "The eval was not a tuple :(") )
-    | Plus ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) + ( nunwrap ( eval b rho)  )  )
-    | Minus ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) - ( nunwrap ( eval b rho)  )  )
+    | Add ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) + ( nunwrap ( eval b rho)  )  )
+    | Sub ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) - ( nunwrap ( eval b rho)  )  )
     | Mult ( a , b ) -> NumVal ( ( nunwrap ( eval a rho)  ) * ( nunwrap ( eval b rho)  )  )
     | Div ( a , b ) -> NumVal ( divide ( nunwrap ( eval a rho) ) ( nunwrap ( eval b rho) ) )
     | Rem ( a , b ) -> NumVal ( modulo ( nunwrap ( eval a rho) ) ( nunwrap ( eval b rho) ) )
@@ -175,8 +185,8 @@ let rec compile t =
   | IfThenElse ( cond , caseT , caseF ) -> ( compile cond ) @ ( compile caseT ) @ ( compile caseF ) @ [ IFTE ]
   | Tuple ( a , explist ) -> ( listcompile explist ) @ [TUPLE a]
   | Project (  ( i , n ) , tree ) -> ( compile tree ) @ [ PROJ (i,n) ]
-  | Plus ( a , b ) -> ( compile a ) @ ( compile b ) @ [ PLUS ]
-  | Minus ( a , b ) -> ( compile a ) @ ( compile b ) @ [ MINUS ]
+  | Add ( a , b ) -> ( compile a ) @ ( compile b ) @ [ PLUS ]
+  | Sub ( a , b ) -> ( compile a ) @ ( compile b ) @ [ MINUS ]
   | Mult ( a , b ) -> ( compile a ) @ ( compile b ) @ [ MULT ]
   | Div ( a , b ) -> ( compile a ) @ ( compile b ) @ [ DIV ]
   | Rem ( a , b ) -> ( compile a ) @ ( compile b ) @ [ REM ]

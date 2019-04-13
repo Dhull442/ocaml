@@ -24,17 +24,17 @@ rule read = parse
 | integer as n          { INT (int_of_string n) }
 | 'T'                   { BOOL (true) }
 | 'F'                   { BOOL (false) }
-| 'a''b''s'             { ABS }
+| "abs"                 { ABS }
 | '~'                   { TILDA }
 | '+'                   { PLUS }
 | '-'                   { MINUS }
 | '*'                   { TIMES }
 (* | '^'                   { EXP } *)
-| 'd''i''v'             { DIV }
-| 'm''o''d'             { REM }
+| "div"                 { DIV }
+| "mod"                 { REM }
 | '('                   { LP }
 | ')'                   { RP }
-| 'n''o''t'             { NOT }
+| "not"                 { NOT }
 | '/''\\'               { DISJ }
 | '\\''/'               { CONJ }
 (* | '>''='                { GEQ } *)
@@ -42,21 +42,25 @@ rule read = parse
 | '='                   { EQ }
 | '>'                   { GT }
 | '<'                   { LT }
-| 'i''f'                { IF }
-| 't''h''e''n'          { THEN }
-| 'e''l''s''e'          { ELSE }
-| 'f''i'                { FI }
-| 'd''e''f'             { DEF }
-| 'l''e''t'             { LET }
-| 'i''n'                { IN }
-| 'e''n''d'             { END }
+| "if"                  { IF }
+| "then"                { THEN }
+| "else"                { ELSE }
+| "fi"                  { FI }
+| "def"                 { DEF }
+| "let"                 { LET }
+| "in"                  { IN }
+| "end"                 { END }
 | '.'                   { DOT }
 | '\\'                  { BACKSLASH }
 | ';'                   { SEMICOLON }
+| ':'                   { COLON }
 | '|''|'                { PARALLEL }
-| 'l''o''c''a''l'       { LOCAL }
+| "local"               { LOCAL }
 | ','                   { COMMA }
-| 'p''r''o''j'          { PROJ }
+| "proj"                { PROJ }
+| "Tint"                { TINT }
+| "Tunit"               { TUNIT }
+| "Tbool"               { TBOOL }
 | alphanum as s         { ID s }
 | eof                   { EOF }
 | _ as invalid          { raise (InvalidToken invalid) }

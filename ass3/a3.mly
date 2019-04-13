@@ -31,8 +31,8 @@ comp:
 | comp LTA arith                         { LessT($1,$3) }
 | arith                                     { $1 }
 arith:
-    arith MINUS mult_expression              { Minus($1,$3) }
-    | arith PLUS mult_expression            { Plus($1,$3) }
+    arith MINUS mult_expression              { Sub($1,$3) }
+    | arith PLUS mult_expression            { Add($1,$3) }
     | mult_expression                        { $1 }
 ;
 mult_expression:
