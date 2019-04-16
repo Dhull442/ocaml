@@ -1,6 +1,6 @@
 exception InvalidArgument;;
 exception Error of string;;
-
+type exptype = Tint | Tunit | Tbool | Tfunc of exptype* exptype;;
 type expr =
   V of string
   | Integer of int
@@ -22,7 +22,14 @@ type expr =
   | GreaterTE of expr * expr
   | LessT of expr * expr
   | LessTE of expr * expr
-  | If_Then_Else of (expr * expr * expr);;
+  | If_Then_Else of (expr * expr * expr)
+  | Let definition * expr
+and definition =
+    Simple of string * expr
+  | Sequence of (definition list)
+  | Parallel of (definition list)
+  | Local of definition * definition;;
+
 
 type closure = CL of expr * ((string * closure) list) | VCL of expr;;
 
@@ -49,6 +56,10 @@ let bigex ad = match ad with
   CL (td,gd) -> execute td gd
   | VCL td -> ad
   in
+let getgdash def gd = match def with
+ Simple (str,expr) -> [(str, execute expr gd)]
+| _ -> raise (Error "definition not Implemented")
+in
   match t with
   V str -> bigex (find str g)
 | Integer a -> VCL t
@@ -71,7 +82,8 @@ let bigex ad = match ad with
 | LessT (a,b) -> VCL (Bool ((unwrap (execute a g)) < (unwrap (execute b g))))
 | LessTE (a,b) -> VCL (Bool (not ((unwrap (execute a g)) = (unwrap (execute b g)))))
 | If_Then_Else (a,b,c) -> (let k = bunwrap (execute a g) in if k then execute b g else execute c g)
-(* | _ -> raise (Error "not Implemented");; *)
+| Let (d,e) -> execute e (augment g (getgdash d g))
+| _ -> raise (Error "not Implemented");;
 
 type opcode = VAR of string | NCONST of int | BCONST of bool | NOT | CMP
   | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT
@@ -111,7 +123,12 @@ let rec stackmc s e c d =
 | NCONST i :: cs -> stackmc ((N i)::s) e cs d
 | BCONST b :: cs -> stackmc ((B b)::s) e cs d
 | NOT :: cs ->( match s with B b :: ss -> stackmc ((B (not b))::ss) e cs d | _ -> raise (Error "stackpop != bool"))
-| CMP :: cs ->( match s with N i :: ss -> stackmc ((B (i > 0))::ss) e cs d | _ -> raise (Error "stackpop != int") )
+| CMP :: cs ->( match s with N i :: ss -> stackmc ((B (i > 0))::ss) e cs d | _ -> raise (Error "stackpop != int"))
+| EQS :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((B (i = ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
+| GT :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((B (i > ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
+| LT :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((B (i < ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
+| GTE :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((B (not (i < ii)))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
+| LTE :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((B (not (i > ii)))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
 | PLUS :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((N (i + ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in add") )
 | MINUS :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((N (i - ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in sub") )
 | MULT :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((N (i * ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in mult") )
@@ -119,6 +136,7 @@ let rec stackmc s e c d =
 | REM :: cs ->(match s with N ii :: (N i :: ss) -> stackmc ((N (i mod ii))::ss) e cs d | _ -> raise (Error "stackpop != 2int in rem") )
 | AND :: cs -> (match s with B ii :: (B i :: ss) -> stackmc ((B (i && ii))::ss) e cs d | _ -> raise (Error "stackpop != 2bool in and") )
 | OR :: cs -> (match s with B ii :: (B i :: ss) -> stackmc ((B (i || ii))::ss) e cs d | _ -> raise (Error "stackpop != 2bool in or") )
+| PAREN :: cs -> stackmc s e cs d
 | IFTE :: cs -> (match s with cF::(cT::(B i::ss)) -> if i then stackmc (cT::ss) e cs d else stackmc (cF::ss)  e cs d | _ -> raise (Error "IFTE condition not satisfied by stack"))
 | CLOS (str,ls) :: cs -> stackmc ((C (str,ls,e))::s) e cs d
 | FCALL :: cs -> (match s with ans :: C (str,ls,ed) :: ss -> stackmc [] (augment ed [(str,ans)]) ls (D (ss,e,cs) :: d) | _ -> raise (Error "FCALL can't be done due to prior errors") )

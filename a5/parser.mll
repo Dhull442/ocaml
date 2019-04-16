@@ -1,5 +1,5 @@
 {
-  open LEXER
+  open A3
   exception InvalidToken of char;;
 }
 
@@ -26,22 +26,22 @@ rule read = parse
 | 'F'                   { BOOL (false) }
 (* | "abs"                 { ABS } *)
 (* | '~'                   { TILDA } *)
-| '+'                   { PLUS }
-| '-'                   { MINUS }
+| '+'                   { PPLUS }
+| '-'                   { PMINUS }
 | '*'                   { TIMES }
 (* | '^'                   { EXP } *)
-| "div"                 { DIV }
-| "mod"                 { REM }
+| "div"                 { PDIV }
+| "mod"                 { PREM }
 | '('                   { LP }
 | ')'                   { RP }
-| "not"                 { NOT }
+| "not"                 { PNOT }
 | '/''\\'               { DISJ }
 | '\\''/'               { CONJ }
 (* | '>''='                { GEQ } *)
 (* | '<''='                { LEQ } *)
 | '='                   { EQ }
-| '>'                   { GT }
-| '<'                   { LT }
+| '>'                   { GTA }
+| '<'                   { LTA }
 | "if"                  { IF }
 | "then"                { THEN }
 | "else"                { ELSE }
@@ -54,7 +54,7 @@ rule read = parse
 | '\\'                  { BACKSLASH }
 (* | ';'                   { SEMICOLON } *)
 | ':'                   { COLON }
-| '|'                   { CMP }
+| '|'                   { PIPE }
 (* | "local"               { LOCAL } *)
 (* | ','                   { COMMA } *)
 (* | "proj"                { PROJ } *)

@@ -13,7 +13,7 @@
 %token <int> INT
 %token <bool> BOOL
 %token <string> ID
-%token NOT PLUS MINUS TIMES DIV REM CONJ DISJ GT LT EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT CMP EOF TINT TUNIT TBOOL
+%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL
 %start exp_parser
 /* %type <A1.definition> def_parser /* Returns definitions */
 %type <A1.expr> exp_parser /* Returns expression */
@@ -33,25 +33,25 @@ or_expression:
     | not                             { $1 }
 ;
 not:
-    NOT comp                       { Not($2) }
+    PNOT comp                       { Not($2) }
     | comp                                 { $1 }
 comp:
  comp EQ arith                          { Equals($1,$3) }
-| comp GT arith                         { GreaterT($1,$3) }
-| comp LT arith                         { LessT($1,$3) }
-| comp GT EQ arith                      { GreaterTE($1,$4) }
-| comp LT EQ arith                      { LessTE($1,$4) }
-| CMP arith CMP                         { Cmp($2) }
+| comp GTA arith                         { GreaterT($1,$3) }
+| comp LTA arith                         { LessT($1,$3) }
+| comp GTA EQ arith                      { GreaterTE($1,$4) }
+| comp LTA EQ arith                      { LessTE($1,$4) }
+| PIPE arith PIPE                         { Cmp($2) }
 | arith                                     { $1 }
 arith:
-    arith MINUS mult_expression              { Minus($1,$3) }
-    | arith PLUS mult_expression            { Plus($1,$3) }
+    arith PMINUS mult_expression              { Minus($1,$3) }
+    | arith PPLUS mult_expression            { Plus($1,$3) }
     | mult_expression                        { $1 }
 ;
 mult_expression:
     mult_expression TIMES ifte     { Mult($1,$3) }
-    | mult_expression DIV ifte    { Div($1,$3) }
-    | mult_expression REM ifte          { Rem($1,$3) }
+    | mult_expression PDIV ifte    { Div($1,$3) }
+    | mult_expression PREM ifte          { Rem($1,$3) }
     | ifte                        { $1 }
 ;
 /* abs:
@@ -67,10 +67,12 @@ ifte:
   PROJ LP int COMMA int RP func       { Project(($3,$5),$7) }
   | func                               { $1 } */
 func:
-  BACKSLASH constant COLON typefunc DOT paren               { Lambda($2,$6) }
-  | paren LP exp_parser RP                    { App($1,$3) }
-  | paren                         { $1 }
+   funabs LP exp_parser RP                    { App($1,$3) }
+  | funabs                         { $1 }
 ;
+funabs:
+  BACKSLASH constant COLON typefunc DOT paren               { Lambda($2,$6) }
+  | paren                                               { $1 }
 paren:
   LP exp_parser RP                          { InParen($2) }
   /* | LP tuplelist RP                     { Tuple(List.length $2 , $2) } */
@@ -82,9 +84,9 @@ constant:
     | ID                              { V($1) }
     | INT                             { Integer($1) }
 ;
-int:
+/* int:
     INT                                   { $1 }
-;
+; */
 /* tuplelist:
       tuplelist COMMA exp_parser                        { $1 @ [$3] }
     | exp_parser COMMA exp_parser                             { [$1;$3] } */
@@ -95,7 +97,7 @@ typelist:
     | typefunc                            { [$1] }
 ;
 typefunc:
-    typefunc MINUS GT simpletype      { Tfunc ($1,$4) }
+    typefunc PMINUS GTA simpletype      { Tfunc ($1,$4) }
     | simpletype                         { $1 }
 ;
 simpletype:

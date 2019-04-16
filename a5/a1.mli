@@ -1,10 +1,13 @@
-open A0
+(* open A0 *)
 (* The possible types of expressions in the language of expressions *)
 (* type exptype = Tint | Tunit | Tbool | Tfunc of (exptype * exptype) *)
 
 (* abstract syntax *)
+
 type expr =
   V of string
+  | Integer of int
+  | Bool of bool
   | Lambda of (expr * expr)
   | App of (expr * expr)
   | Plus of (expr * expr)
@@ -15,9 +18,7 @@ type expr =
   | And of (expr * expr)
   | Or of (expr * expr)
   | InParen of expr
-  | Bool of bool
   | Not of expr
-  | Integer of int
   | Cmp of expr    (* CMP is |sjdnfls| *)
   | Equals of expr * expr
   | GreaterT of expr * expr
@@ -25,22 +26,25 @@ type expr =
   | LessT of expr * expr
   | LessTE of expr * expr
   | If_Then_Else of (expr * expr * expr);;
-(* opcodes of the stack machine (in the same sequence as above) *)
-type opcode = VAR of string | NCONST of bigint | BCONST of bool | ABS | UNARYMINUS | NOT
-  | PLUS | MINUS | MULT | DIV | REM | CONJ | DISJ | EQS | GTE | LTE | GT | LT
-  | PAREN | IFTE | TUPLE of int | PROJ of int*int | LET | FABS | FCALL
-  | SIMPLEDEF | SEQCOMPOSE | PARCOMPOSE | LOCALDEF
 
+type closure = CL of expr * ((string * closure) list) | VCL of expr;;
+
+type exptype = Tint | Tunit | Tbool | Tfunc of exptype* exptype;;
+(* opcodes of the stack machine (in the same sequence as above) *)
+
+type opcode = VAR of string | NCONST of int | BCONST of bool | NOT | CMP
+  | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT
+  | PAREN | IFTE | CLOS of string*(opcode list) | RET | FCALL;;
+
+type answer = N of int | B of bool | C of string*(opcode list)*((string * answer) list);;
+type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 
 (* The type of value returned by the definitional interpreter. *)
-type value = NumVal of int | BoolVal of bool | TupVal of int * (value list)
-
-(* The language should contain the following types of expressions:  integers and booleans *)
-type answer = Num of bigint | Bool of bool | Tup of int * (answer list)
+(* type value = NumVal of int | BoolVal of bool | TupVal of int * (value list) *)
 
 (* the definitional interpreter *)
-val eval : exptree -> (string -> value) -> value
+val execute : expr -> (bytes * closure) list -> closure
 (* the stack machine *)
-val stackmc: (answer list) -> (string -> answer) -> (opcode list) -> answer
+val stackmc: answer list -> (bytes * answer) list -> opcode list -> dump list -> answer
 (* the compiler *)
-val compile: exptree -> opcode list
+val compile: expr -> opcode list
