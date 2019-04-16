@@ -29,7 +29,7 @@ rule read = parse
 | '+'                   { PPLUS }
 | '-'                   { PMINUS }
 | '*'                   { TIMES }
-(* | '^'                   { EXP } *)
+| '^'                   { PCMP }
 | "div"                 { PDIV }
 | "mod"                 { PREM }
 | '('                   { LP }
@@ -37,8 +37,6 @@ rule read = parse
 | "not"                 { PNOT }
 | '/''\\'               { DISJ }
 | '\\''/'               { CONJ }
-(* | '>''='                { GEQ } *)
-(* | '<''='                { LEQ } *)
 | '='                   { EQ }
 | '>'                   { GTA }
 | '<'                   { LTA }
@@ -46,13 +44,13 @@ rule read = parse
 | "then"                { THEN }
 | "else"                { ELSE }
 | "fi"                  { FI }
-(* | "def"                 { DEF } *)
-(* | "let"                 { LET } *)
-(* | "in"                  { IN } *)
-(* | "end"                 { END } *)
+| "def"                 { DEF }
+| "let"                 { LET }
+| "in"                  { IN }
+| "end"                 { END }
 | '.'                   { DOT }
 | '\\'                  { BACKSLASH }
-(* | ';'                   { SEMICOLON } *)
+| ';'                   { SEMICOLON }
 | ':'                   { COLON }
 | '|'                   { PIPE }
 (* | "local"               { LOCAL } *)

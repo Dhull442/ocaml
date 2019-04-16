@@ -15,8 +15,9 @@
 %token <string> ID
 %token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL
 %start exp_parser
-/* %type <A1.definition> def_parser /* Returns definitions */
+%type <A1.definition> def_parser /* Returns definitions */
 %type <A1.expr> exp_parser /* Returns expression */
+%type <A1.exptype> typefunc /* Returns type */
 %%
 /* The grammars written below are dummy. Please rewrite it as per the specifications. */
 
@@ -77,7 +78,7 @@ paren:
   LP exp_parser RP                          { InParen($2) }
   /* | LP tuplelist RP                     { Tuple(List.length $2 , $2) } */
   | constant                                 { $1 }
-  /* | LET def_parser IN exp_parser END              { Let ($2,$4) } */
+  | LET def_parser IN exp_parser END              { Let ($2,$4) }
 ;
 constant:
      BOOL                             { Bool($1) }
@@ -106,12 +107,12 @@ simpletype:
     | TUNIT                             { Tunit }
     /* | LP typelist RP            { Ttuple($2) } */
 ;
-/* def_parser:
-   LOCAL def_parser IN def_parser END             { Local ($2,$4) }
-  | def_parser SEMICOLON def                { (Sequence [$1;$3]) }
+def_parser:
+   /* LOCAL def_parser IN def_parser END             { Local ($2,$4) } */
+  def_parser SEMICOLON def                { (Sequence [$1;$3]) }
   | def_parser PARALLEL def                { (Parallel [$1;$3]) }
   | def                               { $1 }
 ;
 def:
-  DEF ID COLON typefunc EQ exp_parser                      { Simple($2,$4,$6) }
-; */
+  DEF ID EQ exp_parser                      { Simple($2,$4) }
+;

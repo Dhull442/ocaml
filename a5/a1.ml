@@ -23,7 +23,7 @@ type expr =
   | LessT of expr * expr
   | LessTE of expr * expr
   | If_Then_Else of (expr * expr * expr)
-  | Let definition * expr
+  | Let of definition * expr
 and definition =
     Simple of string * expr
   | Sequence of (definition list)
@@ -86,12 +86,17 @@ in
 | _ -> raise (Error "not Implemented");;
 
 type opcode = VAR of string | NCONST of int | BCONST of bool | NOT | CMP
-  | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT
+  | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT | DEF of string
+  | LET of (opcode list)
   | PAREN | IFTE | CLOS of string*(opcode list) | RET | FCALL;;
 
 type answer = N of int | B of bool | C of string*(opcode list)*((string * answer) list);;
 type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 let rec compile t =
+  let rec compiledef d = match d with
+  Simple (str,e) -> (compile e) @ [DEF str]
+  | _ -> raise (Error "Not Implemented")
+  in
   match t with
   V str -> [ VAR str ]
 | Integer i -> [ NCONST i ]
@@ -114,6 +119,7 @@ let rec compile t =
 | If_Then_Else (a,b,c) -> (compile a) @ (compile b) @ (compile c) @ [IFTE]
 | App (a,b) -> (compile a) @ (compile b) @ [FCALL]
 | Lambda(a,b) -> (match a with V str -> [CLOS (str,(compile b) @ [RET])] | _ -> raise (Error "Compile Fail: lambda"))
+| Let (d,e) -> [ LET ((compiledef d) @ (compile e) @ [RET]) ]
 | _ -> raise (Error "Not Implemented");;
 
 let rec stackmc s e c d =
@@ -138,6 +144,8 @@ let rec stackmc s e c d =
 | OR :: cs -> (match s with B ii :: (B i :: ss) -> stackmc ((B (i || ii))::ss) e cs d | _ -> raise (Error "stackpop != 2bool in or") )
 | PAREN :: cs -> stackmc s e cs d
 | IFTE :: cs -> (match s with cF::(cT::(B i::ss)) -> if i then stackmc (cT::ss) e cs d else stackmc (cF::ss)  e cs d | _ -> raise (Error "IFTE condition not satisfied by stack"))
+| LET (ls) :: cs -> stackmc [] e ls (D (s,e,cs) :: d)
+| DEF str :: cs -> (match s with ans :: ss -> stackmc ss (augment e [(str,ans)]) cs d | _ -> raise (Error "Cant define") )
 | CLOS (str,ls) :: cs -> stackmc ((C (str,ls,e))::s) e cs d
 | FCALL :: cs -> (match s with ans :: C (str,ls,ed) :: ss -> stackmc [] (augment ed [(str,ans)]) ls (D (ss,e,cs) :: d) | _ -> raise (Error "FCALL can't be done due to prior errors") )
 | RET :: cs -> (match s with ans :: sdash -> (match d with (D (sOLD,eOLD,cOLD) :: ds) -> stackmc (ans :: sOLD) eOLD cOLD ds | _ -> raise (Error "Dump malfunction")) | _ -> raise (Error "Stackpop = NULL"))
