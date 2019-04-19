@@ -6,6 +6,7 @@ type expr =
   | Integer of int
   | Bool of bool
   | Lambda of (expr * expr)
+  | RecLambda of (expr * expr)
   | App of (expr * expr)
   | Plus of (expr * expr)
   | Minus of (expr * expr)
@@ -30,8 +31,9 @@ and definition =
   | Parallel of (definition list)
   | Local of definition * definition;;
 
+type closure = CL of expr * ((string * closure) list) | VCL of expr | DCL of definition * (string * closure) list;;
 
-type closure = CL of expr * ((string * closure) list) | VCL of expr;;
+type krivinetoken = KADD of closure | KSUB of closure | KMULT of closure | KDO of closure | KDONE of closure | KDEF of (string * closure) | KIFTE of closure | KAND of closure | KOR of closure | KCMP;;
 
 let rec find x g = match g with
  gi :: gs -> (match gi with (a,b) -> (if (a = x) then b else find x gs) | _ -> raise InvalidArgument)
@@ -51,6 +53,107 @@ let unwrap ad = match ad with
 ;;
 let bunwrap ad = match ad with
   VCL (Bool x) -> x | _ -> raise (Error "execution result not bool");;
+
+let rec kmc c s =
+match c with
+  VCL ( Integer a ) -> (
+      match s with
+        KADD (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KADD c :: ss)
+      | KADD (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first + a))) ss
+      | KMULT (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KMULT c :: ss)
+      | KMULT (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first * a))) ss
+      | KSUB (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KSUB c :: ss)
+      | KSUB (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first - a))) ss
+      | KCMP :: ss -> kmc (VCL (Bool (a > 0))) ss
+      | _ -> KDONE (c) :: s
+      )
+| VCL ( Bool b ) -> (
+      match s with
+        KIFTE caseT :: KIFTE caseF :: ss -> if b then kmc caseT ss else kmc caseF ss
+      | KAND (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KAND (c) :: ss)
+      | KAND (VCL (Bool first)) :: ss -> kmc (VCL (Bool (first && b)))  ss
+      | KOR (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KOR (c) :: ss)
+      | KOR (VCL (Bool first)) :: ss -> kmc (VCL (Bool (first || b))) ss
+      | _ -> KDONE (c) :: s
+  )
+| CL (And (a,b), g) -> (
+      kmc (CL (a,g)) (KAND (CL (b,g)) :: s)
+  )
+| CL (Or (a,b), g) -> (
+      kmc (CL (a,g)) (KOR (CL (b,g)) :: s)
+  )
+| CL (Cmp (a), g) -> (
+      kmc (CL (a,g)) (KCMP :: s)
+  )
+| CL ( Plus (a,b) , g ) -> (
+      kmc (CL (a,g)) (KADD (CL (b,g)) :: s)
+  )
+| CL ( Minus (a,b) , g ) -> (
+        kmc (CL (a,g)) (KSUB (CL (b,g)) :: s)
+    )
+| CL ( Mult (a,b) , g ) -> (
+          kmc (CL (a,g)) (KMULT (CL (b,g)) :: s)
+      )
+| CL ( Integer a , g ) -> (
+      kmc (VCL (Integer a)) s
+  )
+| CL (Lambda (V str,body), g) -> (
+      match s with
+      last :: ss -> (match last with KDO clos -> kmc (CL (body, augment g [(str,clos)])) ss
+    | _ -> raise (Error "Lamda expects DO in stack")) | _ -> raise (Error "Stack is empty, Can't apply Lambda")
+  )
+| CL (RecLambda (V str,body), g) -> (
+      match s with
+      last :: ss -> (match last with KDO clos -> kmc (CL (body, augment g [(str,clos)])) ss
+    | _ -> raise (Error "Lamda expects DO in stack")) | _ -> raise (Error "Stack is empty, Can't apply Lambda")
+  )
+| CL (App (next,input), g) -> (
+      kmc (CL (next,g)) (KDO (CL (input,g))::s)
+  )
+| CL (V str,g) -> (
+    let k = find str g in
+    match k with
+     CL (exp,gnew) -> (match exp with RecLambda (a,b) -> kmc (CL ) | _ -> kmc (CL (exp,augment g gnew)) s)
+    | VCL (exp) -> KDONE k :: s
+  )
+| CL (Let (def,expr),g) -> ( kmc (DCL (def,g)) (KDO (CL (expr,g)) :: s)
+  )
+| DCL (def,g) -> (
+    match def with
+      Simple (str,exp) -> (match s with KDO (CL (expr,gexp)) :: ss -> kmc (CL (expr,augment gexp [(str,CL (exp,g))])) ss | _ -> raise (Error "expected sth to do for the def"))
+      | _ -> raise InvalidArgument
+  )
+| CL (If_Then_Else(case,condT,condF),g) -> (
+    kmc (CL (case,g)) (KIFTE (CL (condT,g)) :: KIFTE (CL (condF,g)) :: s )
+  )
+| _ -> raise InvalidArgument;;
+
+let rec krivinemc c s =
+let getgdash def gd = match def with
+ Simple (str,expr) -> [(str, CL (expr,gd))]
+ (* SimpleRec (str,expr) -> let gd = augment gd [] *)
+| _ -> raise (Error "definition not Implemented")
+in
+  match c with
+  VCL a -> c :: s
+| CL (Integer a,_) -> VCL (Integer a) :: s
+| CL (Bool b,_) -> VCL (Bool b) :: s
+| CL (V str, g) -> krivinemc (find str g) s
+| CL (Lambda (V str,b),g) -> (match s with last :: ss -> krivinemc (CL (b, augment g [(str,last)])) ss | _ -> raise (Error "Stack has no value on top"))
+| CL (App(abs,input),g) -> krivinemc (CL (abs,g)) (CL (input,g) :: s)
+| CL (Plus(a,b),g) -> (let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Integer op1), VCL (Integer op2)) -> (VCL (Integer (op1 + op2))) :: s | _ -> raise (Error "PLUS can\'t be done")))
+| CL (Minus(a,b),g) -> (let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Integer op1), VCL (Integer op2)) -> (VCL (Integer (op1 - op2))) :: s | _ -> raise (Error "Minus can\'t be done")))
+| CL (Mult(a,b),g) -> (let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Integer op1), VCL (Integer op2)) -> (VCL (Integer (op1 * op2))) :: s | _ -> raise (Error "Mult can\'t be done")))
+| CL (Div(a,b),g) -> (let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Integer op1), VCL (Integer op2)) -> (VCL (Integer (op1 / op2))) :: s | _ -> raise (Error "Div can\'t be done")))
+| CL (Rem(a,b),g) -> (let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Integer op1), VCL (Integer op2)) -> (VCL (Integer (op1 mod op2))) :: s | _ -> raise (Error "Rem can\'t be done")))
+| CL (Cmp(a),g) -> let f1 = List.hd (krivinemc (CL (a,g)) []) in (match f1 with VCL (Integer a) -> VCL (Bool (a>0)) :: s | _ -> raise (Error "Invalid evaluation"))
+| CL (And(a,b),g) -> let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Bool op1), VCL (Bool op2)) -> (VCL (Bool (op1 && op2))) :: s | _ -> raise (Error "AND can\'t be done"))
+| CL (Or(a,b),g) -> let f1 = List.hd (krivinemc (CL (a,g)) []) in let f2 = List.hd (krivinemc (CL (b,g)) []) in (match (f1,f2) with (VCL (Bool op1), VCL (Bool op2)) -> (VCL (Bool (op1 || op2))) :: s | _ -> raise (Error "OR can\'t be done"))
+| CL (If_Then_Else(a,b,c),g) -> let cond = List.hd (krivinemc (CL (a,g)) []) in (match cond with VCL (Bool ans) -> if ans then (krivinemc (CL (b,g)) s) else (krivinemc (CL (c,g)) s) | _ -> raise (Error "IFTE wrong Implemented" ) )
+| CL (InParen(a),g) -> krivinemc (CL (a,g)) s
+| CL (Let(def,t),g) -> krivinemc (CL (t,augment g (getgdash def g))) s
+| _ -> raise InvalidArgument;;
+
 let rec execute t g =
 let bigex ad = match ad with
   CL (td,gd) -> execute td gd

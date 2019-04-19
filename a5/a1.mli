@@ -3,7 +3,6 @@
 (* type exptype = Tint | Tunit | Tbool | Tfunc of (exptype * exptype) *)
 
 (* abstract syntax *)
-
 type expr =
   V of string
   | Integer of int
@@ -25,7 +24,13 @@ type expr =
   | GreaterTE of expr * expr
   | LessT of expr * expr
   | LessTE of expr * expr
-  | If_Then_Else of (expr * expr * expr);;
+  | If_Then_Else of (expr * expr * expr)
+  | Let of definition * expr
+and definition =
+    Simple of string * expr
+  | Sequence of (definition list)
+  | Parallel of (definition list)
+  | Local of definition * definition;;
 
 type closure = CL of expr * ((string * closure) list) | VCL of expr;;
 
@@ -33,7 +38,8 @@ type exptype = Tint | Tunit | Tbool | Tfunc of exptype* exptype;;
 (* opcodes of the stack machine (in the same sequence as above) *)
 
 type opcode = VAR of string | NCONST of int | BCONST of bool | NOT | CMP
-  | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT
+  | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT | DEF of string
+  | LET of (opcode list)
   | PAREN | IFTE | CLOS of string*(opcode list) | RET | FCALL;;
 
 type answer = N of int | B of bool | C of string*(opcode list)*((string * answer) list);;
@@ -43,6 +49,8 @@ type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 (* type value = NumVal of int | BoolVal of bool | TupVal of int * (value list) *)
 
 (* the definitional interpreter *)
+val krivinemc : closure -> closure list -> closure list
+
 val execute : expr -> (bytes * closure) list -> closure
 (* the stack machine *)
 val stackmc: answer list -> (bytes * answer) list -> opcode list -> dump list -> answer
