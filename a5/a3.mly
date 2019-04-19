@@ -13,7 +13,7 @@
 %token <int> INT
 %token <bool> BOOL
 %token <string> ID
-%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL
+%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL PLET IN END SEMICOLON PDEF PCMP
 %start exp_parser
 %type <A1.definition> def_parser /* Returns definitions */
 %type <A1.expr> exp_parser /* Returns expression */
@@ -42,7 +42,7 @@ comp:
 | comp LTA arith                         { LessT($1,$3) }
 | comp GTA EQ arith                      { GreaterTE($1,$4) }
 | comp LTA EQ arith                      { LessTE($1,$4) }
-| PIPE arith PIPE                         { Cmp($2) }
+| PCMP arith PCMP                         { Cmp($2) }
 | arith                                     { $1 }
 arith:
     arith PMINUS mult_expression              { Minus($1,$3) }
@@ -78,7 +78,7 @@ paren:
   LP exp_parser RP                          { InParen($2) }
   /* | LP tuplelist RP                     { Tuple(List.length $2 , $2) } */
   | constant                                 { $1 }
-  | LET def_parser IN exp_parser END              { Let ($2,$4) }
+  | PLET def_parser IN exp_parser END              { Let ($2,$4) }
 ;
 constant:
      BOOL                             { Bool($1) }
@@ -110,9 +110,9 @@ simpletype:
 def_parser:
    /* LOCAL def_parser IN def_parser END             { Local ($2,$4) } */
   def_parser SEMICOLON def                { (Sequence [$1;$3]) }
-  | def_parser PARALLEL def                { (Parallel [$1;$3]) }
+  | def_parser PIPE def                { (Parallel [$1;$3]) }
   | def                               { $1 }
 ;
 def:
-  DEF ID EQ exp_parser                      { Simple($2,$4) }
+  PDEF ID EQ exp_parser                      { Simple($2,$4) }
 ;

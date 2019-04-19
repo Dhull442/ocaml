@@ -38,10 +38,14 @@ Input is given as value and output is an answer *)
 (* let binding rho s = toAnswer (rho s);; *)
 let p0="\\X:Tint.(3*X+5)(3)";;
 let p1="if 10>20 then \\X:Tbool.(if X then 1 else 0 fi) (T) else 100 fi";;
+let p2 = " let def Func1 = \\X:Tint.(if ^X^ then 1 else 1 + (X-1) fi) in Func1(4) end ";;
+let e0 = Let ( Simple ("fun1",Lambda( V "x", Plus ( V "x", Integer 30 ) ) ), App ( V "fun1" , Integer 5 ) ) ;;
+let rece = Let ( Simple ("fun1", Lambda(V "x", If_Then_Else (Cmp (V "x"),App ( V "fun1", Minus ( V "x", Integer 1 )),Integer 0))), App (
+ V "fun1", Integer 4 ) );;
 (* Both use the same lexer in A1 but different parser in A3 *)
 let exp_parser s = A3.exp_parser Parser.read (Lexing.from_string s) ;;
 (* let def_parser s rho = A3.def_parser A2.read (Lexing.from_string s) ;; *)
-let krivine s = A1.execute (exp_parser s) [];;
+let krivine s = A1.krivinemc (CL (exp_parser s,[])) [];;
 let compile s = A1.compile (exp_parser s);;
 let secd s = A1.stackmc [] [] (A1.compile (exp_parser s)) [];;
 let eval s = (krivine s,secd s,compile s,exp_parser s);;

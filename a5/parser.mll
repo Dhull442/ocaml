@@ -44,8 +44,8 @@ rule read = parse
 | "then"                { THEN }
 | "else"                { ELSE }
 | "fi"                  { FI }
-| "def"                 { DEF }
-| "let"                 { LET }
+| "def"                 { PDEF }
+| "let"                 { PLET }
 | "in"                  { IN }
 | "end"                 { END }
 | '.'                   { DOT }
