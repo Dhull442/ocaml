@@ -3,11 +3,13 @@
 (* type exptype = Tint | Tunit | Tbool | Tfunc of (exptype * exptype) *)
 
 (* abstract syntax *)
+type exptype = Tint | Tunit | Tbool | Tfunc of exptype* exptype;;
 type expr =
   V of string
   | Integer of int
   | Bool of bool
   | Lambda of (expr * expr)
+  | RecLambda of (expr * expr)
   | App of (expr * expr)
   | Plus of (expr * expr)
   | Minus of (expr * expr)
@@ -32,10 +34,9 @@ and definition =
   | Parallel of (definition list)
   | Local of definition * definition;;
 
-type closure = CL of expr * ((string * closure) list) | VCL of expr;;
+type closure = CL of expr * ((string * closure) list) | VCL of expr | DCL of definition * (string * closure) list;;
 
-type exptype = Tint | Tunit | Tbool | Tfunc of exptype* exptype;;
-(* opcodes of the stack machine (in the same sequence as above) *)
+type krivinetoken = KADD of closure | KSUB of closure | KMULT of closure | KDO of closure | KDONE of closure | KDEF of (string * closure) | KIFTE of closure | KAND of closure | KOR of closure | KCMP;;
 
 type opcode = VAR of string | NCONST of int | BCONST of bool | NOT | CMP
   | PLUS | MINUS | MULT | DIV | REM | AND | OR | EQS | GTE | LTE | GT | LT | DEF of string
@@ -49,6 +50,7 @@ type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 (* type value = NumVal of int | BoolVal of bool | TupVal of int * (value list) *)
 
 (* the definitional interpreter *)
+val kmc : closure -> krivinetoken list -> krivinetoken list
 val krivinemc : closure -> closure list -> closure list
 
 val execute : expr -> (bytes * closure) list -> closure

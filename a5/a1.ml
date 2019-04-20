@@ -53,8 +53,29 @@ let unwrap ad = match ad with
 ;;
 let bunwrap ad = match ad with
   VCL (Bool x) -> x | _ -> raise (Error "execution result not bool");;
+(* let printexp e = match
+let printclosure cl = match cl with
+  CL (exp,) *)
+let printstack s = match s with
+  si :: ss -> (match si with
+      KADD cl -> print_bytes "KADD ";
+    | KSUB cl -> print_bytes "KSUB ";
+    | KMULT cl -> print_bytes "KMULT ";
+    | KDO cl -> print_bytes "KDO ";
+    | KDEF (str,cl) -> print_bytes "KDEF ";print_bytes str;
+    | KDONE cl -> print_bytes "KDONE ";
+    | KIFTE cl -> print_bytes "KIFTE ";
+    | KAND cl -> print_bytes "KAND ";
+    | KOR cl -> print_bytes "KOR ";
+    | KCMP -> print_bytes "KCMP ";
+      )
+  | [] -> print_endline "EMPTY";
+;;
 
 let rec kmc c s =
+if List.length s > 100 then
+  raise (Error "Stack Overflow")
+else(
 match c with
   VCL ( Integer a ) -> (
       match s with
@@ -113,8 +134,9 @@ match c with
 | CL (V str,g) -> (
     let k = find str g in
     match k with
-     CL (exp,gnew) -> (match exp with RecLambda (a,b) -> kmc (CL ) | _ -> kmc (CL (exp,augment g gnew)) s)
+     CL (exp,gnew) -> (match exp with RecLambda (a,b) -> kmc (CL (exp,augment gnew [(str,k)])) s | _ -> kmc (CL (exp,gnew)) s)
     | VCL (exp) -> KDONE k :: s
+    | _ -> raise (Error "Not handled DCL")
   )
 | CL (Let (def,expr),g) -> ( kmc (DCL (def,g)) (KDO (CL (expr,g)) :: s)
   )
@@ -126,7 +148,8 @@ match c with
 | CL (If_Then_Else(case,condT,condF),g) -> (
     kmc (CL (case,g)) (KIFTE (CL (condT,g)) :: KIFTE (CL (condF,g)) :: s )
   )
-| _ -> raise InvalidArgument;;
+| _ -> raise InvalidArgument)
+;;
 
 let rec krivinemc c s =
 let getgdash def gd = match def with
@@ -158,6 +181,7 @@ let rec execute t g =
 let bigex ad = match ad with
   CL (td,gd) -> execute td gd
   | VCL td -> ad
+  | _ -> raise (Error "Not Understood")
   in
 let getgdash def gd = match def with
  Simple (str,expr) -> [(str, execute expr gd)]
@@ -197,7 +221,7 @@ type answer = N of int | B of bool | C of string*(opcode list)*((string * answer
 type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 let rec compile t =
   let rec compiledef d = match d with
-  Simple (str,e) -> (compile e) @ [DEF str]
+  Simple (str,e) -> (* match e with RecLambda(V inp, expr) -> () | _ -> *) (compile e) @ [DEF str]
   | _ -> raise (Error "Not Implemented")
   in
   match t with
@@ -222,6 +246,7 @@ let rec compile t =
 | If_Then_Else (a,b,c) -> (compile a) @ (compile b) @ (compile c) @ [IFTE]
 | App (a,b) -> (compile a) @ (compile b) @ [FCALL]
 | Lambda(a,b) -> (match a with V str -> [CLOS (str,(compile b) @ [RET])] | _ -> raise (Error "Compile Fail: lambda"))
+| RecLambda(a,b) -> (match a with V str -> [CLOS (str,(compile b) @ [RET])] | _ -> raise (Error "Compile Fail: reclambda"))
 | Let (d,e) -> [ LET ((compiledef d) @ (compile e) @ [RET]) ]
 | _ -> raise (Error "Not Implemented");;
 

@@ -13,7 +13,7 @@
 %token <int> INT
 %token <bool> BOOL
 %token <string> ID
-%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL PLET IN END SEMICOLON PDEF PCMP
+%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL PLET IN END SEMICOLON PDEF PCMP PREC
 %start exp_parser
 %type <A1.definition> def_parser /* Returns definitions */
 %type <A1.expr> exp_parser /* Returns expression */
@@ -73,6 +73,7 @@ func:
 ;
 funabs:
   BACKSLASH constant COLON typefunc DOT paren               { Lambda($2,$6) }
+  | PREC BACKSLASH constant COLON typefunc DOT paren        { RecLambda($3,$7) }
   | paren                                               { $1 }
 paren:
   LP exp_parser RP                          { InParen($2) }

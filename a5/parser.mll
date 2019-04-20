@@ -12,15 +12,16 @@
 *)
 
 (* REGEX PATTERNS *)
-
 let whitespace = [' ' '\n' '\t']+
 let digit = ['0'-'9']
 let integer = ('0'|['1'-'9']digit*)
 let alphanum = ['A'-'Z']['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']*
+let everything = ['A'-'Z' 'a'-'z' '0'-'9' '_' ' ' '\n' '\t' '&' ]*
 
 (* RULE *)
 rule read = parse
  whitespace             { read lexbuf }
+| '/''*' everything '*''/'      { read lexbuf }
 | integer as n          { INT (int_of_string n) }
 | 'T'                   { BOOL (true) }
 | 'F'                   { BOOL (false) }
@@ -48,6 +49,7 @@ rule read = parse
 | "let"                 { PLET }
 | "in"                  { IN }
 | "end"                 { END }
+| "rec"                 { PREC }
 | '.'                   { DOT }
 | '\\'                  { BACKSLASH }
 | ';'                   { SEMICOLON }
