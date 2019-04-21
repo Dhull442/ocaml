@@ -50,11 +50,6 @@ type dump = D of (answer list)*((string * answer) list)*(opcode list);;
 (* type value = NumVal of int | BoolVal of bool | TupVal of int * (value list) *)
 
 (* the definitional interpreter *)
-val kmc : closure -> krivinetoken list -> krivinetoken list
 val krivinemc : closure -> closure list -> closure list
 
 val execute : expr -> (bytes * closure) list -> closure
-(* the stack machine *)
-val stackmc: answer list -> (bytes * answer) list -> opcode list -> dump list -> answer
-(* the compiler *)
-val compile: expr -> opcode list
