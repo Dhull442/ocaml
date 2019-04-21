@@ -6,7 +6,7 @@
 %token <int> INT
 %token <bool> BOOL
 %token <string> ID
-%token PNOT PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL PLET IN END SEMICOLON PDEF PCMP PREC
+%token PNOT PPROJ PPLUS PMINUS TIMES PDIV PREM CONJ DISJ GTA LTA EQ LP RP IF THEN ELSE FI COLON BACKSLASH DOT PIPE EOF TINT TUNIT TBOOL PLET IN END SEMICOLON PDEF PCMP PREC PCOMMA
 %start exp_parser def_parser
 %type <Types.definition> def_parser /* Returns definitions */
 %type <Types.expr> exp_parser /* Returns expression */
@@ -50,6 +50,11 @@ mult_expression:
 
 ifte:
       IF exp_parser THEN exp_parser ELSE exp_parser FI  { If_Then_Else($2,$4,$6) }
+    | proj                                          { $1 }
+;
+
+proj:
+      PPROJ LP int RP func                           { Proj($3,$5) }
     | func                                          { $1 }
 ;
 
@@ -68,12 +73,22 @@ funabs:
 
 paren:
       LP exp_parser RP                              { InParen($2) }
+    | LP tuplelist RP                               { Tuple (List.length $2,$2) }
     | letp                                          { $1 }
 ;
 
 letp:
       PLET def_parser IN exp_parser END             { Let ($2,$4) }
     | constant                                      { $1 }
+;
+
+int:
+    INT                                   { $1 }
+;
+
+tuplelist:
+      tuplelist PCOMMA exp_parser                        { $1 @ [$3] }
+    | exp_parser PCOMMA exp_parser                       { [$1;$3] }
 ;
 
 constant:

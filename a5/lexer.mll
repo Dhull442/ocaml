@@ -48,7 +48,9 @@ rule read = parse
 | "in"                  { IN }
 | "end"                 { END }
 | "rec"                 { PREC }
+| "proj"                { PPROJ }
 | '.'                   { DOT }
+| ','                   { PCOMMA }
 | '\\'                  { BACKSLASH }
 | ';'                   { SEMICOLON }
 | ':'                   { COLON }
