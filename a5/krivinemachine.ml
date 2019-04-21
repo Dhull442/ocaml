@@ -13,7 +13,20 @@ match c with
       | KMULT (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first * a))) ss
       | KSUB (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KSUB c :: ss)
       | KSUB (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first - a))) ss
-      | KCMP :: ss -> kmc (VCL (Bool (a > 0))) ss
+      | KDIV (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KDIV c :: ss)
+      | KDIV (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first / a))) ss
+      | KREM (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KREM c :: ss)
+      | KREM (VCL (Integer first)) :: ss -> kmc (VCL (Integer (first mod a))) ss
+      | KCMP (i,CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KCMP (i,c) :: ss)
+      | KCMP (i, VCL(Integer first)) :: ss -> (
+          match i with
+            0 -> kmc (VCL (Bool (first = a))) ss
+          | 1 -> kmc (VCL (Bool (first > a))) ss
+          | 2 -> kmc (VCL (Bool (not (first < a)))) ss
+          | 3 -> kmc (VCL (Bool (first < a))) ss
+          | 4 -> kmc (VCL (Bool (not (first > a)))) ss
+          | _ -> raise (Error "Invalid CMP value")
+        )
       | _ -> KDONE (c) :: s
       )
 | VCL ( Bool b ) -> (
@@ -23,17 +36,37 @@ match c with
       | KAND (VCL (Bool first)) :: ss -> kmc (VCL (Bool (first && b)))  ss
       | KOR (CL (secondexpr, g)) :: ss -> kmc (CL (secondexpr, g)) (KOR (c) :: ss)
       | KOR (VCL (Bool first)) :: ss -> kmc (VCL (Bool (first || b))) ss
+      | KNOT :: ss -> kmc (VCL (Bool (not b))) ss
       | _ -> KDONE (c) :: s
   )
+| VCL (_) -> raise (Error "Unexpected VCL")
 | CL (And (a,b), g) -> (
       kmc (CL (a,g)) (KAND (CL (b,g)) :: s)
   )
 | CL (Or (a,b), g) -> (
       kmc (CL (a,g)) (KOR (CL (b,g)) :: s)
   )
-| CL (Cmp (a), g) -> (
-      kmc (CL (a,g)) (KCMP :: s)
+| CL (Not (a), g) -> (
+      kmc (CL (a,g)) (KNOT :: s)
   )
+| CL (Cmp (a), g) -> (
+      kmc (CL (a,g)) (KCMP (1,CL (Integer 0,g)) :: s)
+  )
+| CL (Equals (a,b), g) -> (
+      kmc (CL (a,g)) (KCMP (0,CL (b,g)) :: s)
+    )
+| CL (GreaterT (a,b), g) -> (
+      kmc (CL (a,g)) (KCMP (1,CL (b,g)) :: s)
+    )
+| CL (GreaterTE (a,b), g) -> (
+      kmc (CL (a,g)) (KCMP (2,CL (b,g)) :: s)
+    )
+| CL (LessT (a,b), g) -> (
+      kmc (CL (a,g)) (KCMP (3,CL (b,g)) :: s)
+    )
+| CL (LessTE (a,b), g) -> (
+      kmc (CL (a,g)) (KCMP (4,CL (b,g)) :: s)
+    )
 | CL ( Plus (a,b) , g ) -> (
       kmc (CL (a,g)) (KADD (CL (b,g)) :: s)
   )
@@ -43,8 +76,17 @@ match c with
 | CL ( Mult (a,b) , g ) -> (
           kmc (CL (a,g)) (KMULT (CL (b,g)) :: s)
       )
+| CL ( Div (a,b) , g ) -> (
+          kmc (CL (a,g)) (KDIV (CL (b,g)) :: s)
+      )
+| CL ( Rem (a,b) , g ) -> (
+          kmc (CL (a,g)) (KREM (CL (b,g)) :: s)
+      )
 | CL ( Integer a , g ) -> (
       kmc (VCL (Integer a)) s
+  )
+| CL ( Bool a, g) -> (
+      kmc (VCL (Bool a)) s
   )
 | CL (Lambda (V str,body), g) -> (
       match s with
@@ -76,5 +118,12 @@ match c with
     kmc (CL (case,g)) (KIFTE (CL (condT,g)) :: KIFTE (CL (condF,g)) :: s )
   )
 | CL (InParen (expr), g) -> kmc (CL (expr, g)) s
-| _ -> raise InvalidArgument)
+| CL (Proj (i,expr), g) -> kmc (CL (expr,g)) (KPROJ i :: s)
+| CL (Tuple (len,ls) , g) -> (
+    match s with
+    KPROJ i :: ss -> kmc (CL (get i ls,g)) ss
+    | _ -> KDONE (c) :: s
+  )
+| _ -> raise InvalidArgument
+)
 ;;
