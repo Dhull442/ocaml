@@ -29,8 +29,8 @@ rule read = parse
 | "var"                 { PVAR }
 | "call"                { PCALL }
 | "="                   { EQ }
-| "program"             { PROGRAM }
-| "ps"                  { PS }
+| "program"             { PPROGRAM }
+| "showstack"                  { PS }
 | "procedure"           { PPROCEDURE }
 | ';'                   { SEMICOLON }
 | ':'                   { COLON }

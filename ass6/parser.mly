@@ -5,15 +5,17 @@
 /* Tokens are defined below.  */
 %token <int> INT
 %token <string> ID
-%token EQ LP RP COLON EOF TINT TUNIT SEMICOLON PVAR PCALL PPROCEDURE EOL PS
+%token EQ LP RP COLON EOF TINT TUNIT SEMICOLON PVAR PCALL PPROCEDURE EOL PS PPROGRAM
 %start main
 %type <Evaluator.expr> main /* Returns expression */
+%type <Evaluator.typ> typeval
 %%
 
 main:
     assign EOL                       { $1 }
     | SEMICOLON SEMICOLON EOL            { RET }
     | PS                 EOL             { ViewStack }
+    | PPROGRAM ID EOL                    { Program ($2) }
 ;
 assign:
     ID COLON EQ constant                         { ASSIGN ($1,$4) }
@@ -32,10 +34,10 @@ vbleslist:
 ;
 
 vble:
-    ID COLON type             { VAR ($1,$3) }
+    ID COLON typeval             { VARIABLE ($1,$3) }
 ;
 
-type:
+typeval:
     TINT                      { Tint }
     | TUNIT                   { Tunit }
 ;
@@ -45,8 +47,9 @@ dcl:
     | constant                      { $1 }
 ;
 exprlist:
-  exprlist SEMICOLON constant           { $1 @ [@3] }
+  exprlist SEMICOLON constant           { $1 @ [$3] }
 | constant                              { [$1] }
+;
 constant:
    INT                                  { N($1) }
    | ID                                 { V($1) }

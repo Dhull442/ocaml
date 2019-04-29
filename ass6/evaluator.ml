@@ -2,27 +2,27 @@ exception Error of string;;
 
 type typ = Tint | Tunit ;;
 
-type expr = N of int | VAR of string * typ | ASSIGN of string * expr | CALL of string * (expr list) | DEFINE of procedure | RET | DCL of expr list | V of string | Program of string | ViewStack
+type expr = N of int | VARIABLE of string * typ | ASSIGN of string * expr | CALL of string * (expr list) | DEFINE of procedure | RET | DCL of expr list | V of string | Program of string | ViewStack
 and procedure = P of string * (expr list);;
 type register = string * typ * expr;;
 type stackframe = F of string * (register list) * (register list) * (register list) * (stackframe list) * stackframe | NULL;;
 (* stackframe = name * decl vbls in this frame * input vbls * vbls from prev * stackframe list callable from here * head frame  *)
 
 let rec contains name rl = match rl with
-  ri :: rs ->( match ri with (name,_,_) -> true | _ -> contains name rs)
+  ri :: rs ->( match ri with (n,_,_) -> if (n=name) then true else contains name rs | _ -> raise (Error "Invalid Argument"))
 | [] -> false
 ;;
 let rec change name value rl ret = match rl with
   ri :: rs -> (match ri with (name,Tint,_) -> ret @ [(name,Tint,value)] @ rs | _ -> change name value rs (ret @ [ri]))
 | [] -> raise (Error ("No variable named \'"^name^"\' defined"));;
 let rec get name l = match l with
-  li :: ls -> (match li with F (n,_,_,_,_,_) -> if n=name then li else get name ls)
+  li :: ls -> (match li with F (n,_,_,_,_,_) -> if n=name then li else get name ls | _ -> raise (Error "Invalid Search"))
 | [] -> raise (Error ("No such element \'"^name^"\'"))
 ;;
 let rec eval ex (sf,cstack) =
 let rec map invb =
 match invb with
-  VAR (s,t) :: ls -> (s,t,N 0) :: (map ls)
+  VARIABLE (s,t) :: ls -> (s,t,N 0) :: (map ls)
 | [] -> []
 | _ -> raise (Error "Shouldn't be this")
 in
@@ -32,7 +32,7 @@ ci :: cs -> print_endline ci; printstack cs
 in
 match sf with F (fname,r,invb,prevr,sfl,head) ->(
   match ex with
-  VAR (s,t) -> if (contains s r) then raise (Error (s^" already declared.")) else (F (fname,(s,t,N 0) :: r,invb,prevr,sfl,head),cstack)
+  VARIABLE (s,t) -> if (contains s r) then raise (Error (s^" already declared.")) else (F (fname,(s,t,N 0) :: r,invb,prevr,sfl,head),cstack)
 | ASSIGN (s,v) -> (F (fname,change s v r [],invb,prevr,sfl,head),cstack)
 | DEFINE (P (pname,inputv)) -> (F (pname,[],map inputv,r@invb@prevr,[],sf),cstack)
 | CALL (pname, ls) -> let f = get pname sfl in ( match f with F (_,_,f3,_,_,_) -> if(List.length ls = List.length f3) then (sf,pname :: cstack) else raise (Error "Input variables don't match function parameters") | _ -> raise (Error "Not a callable frame"))
