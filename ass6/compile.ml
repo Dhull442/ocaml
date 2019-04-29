@@ -15,7 +15,7 @@ let _ =
             while true do
             let result = Parser.main Lexer.token lexbuf in
             let program = Evaluator.eval result program;
-             Printf.printf "\n~$ "; flush stdout
+             Printf.printf "\n~$ "; flush stdout;
             (* flush ensures that the evaluated information gets printed to stdout *)
             done
         with Lexer.Eof ->
