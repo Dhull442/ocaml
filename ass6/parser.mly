@@ -1,5 +1,5 @@
 %{
-    open Type
+    open Evaluator
 %}
 
 /* Tokens are defined below.  */
@@ -7,23 +7,23 @@
 %token <string> ID
 %token EQ LP RP COLON EOF TINT TUNIT SEMICOLON PVAR PCALL PPROCEDURE EOL PS
 %start main
-%type <Type.expr> main /* Returns expression */
+%type <Evaluator.expr> main /* Returns expression */
 %%
 
 main:
     assign EOL                       { $1 }
-    | SEMICOLON SEMICOLON             { RET }
-    | PS                              { ViewStack }
+    | SEMICOLON SEMICOLON EOL            { RET }
+    | PS                 EOL             { ViewStack }
 ;
 assign:
-    ID COLON EQ arith                         { ASSIGN ($1,$4) }
+    ID COLON EQ constant                         { ASSIGN ($1,$4) }
     | proc                                    { $1 }
 ;
 
 proc:
-      CALL ID LP exprlist RP                                  { CALL ($2,$4) }
+      PCALL ID LP exprlist RP                                  { CALL ($2,$4) }
     | PPROCEDURE ID LP vbleslist RP COLON                { DEFINE (P($2,$4)) }
-    | dcl
+    | dcl                               { $1 }
 ;
 
 vbleslist:
@@ -41,7 +41,7 @@ type:
 ;
 
 dcl:
-    VAR vbleslist SEMICOLON         { DCL ($2) }
+    PVAR vbleslist SEMICOLON         { DCL ($2) }
     | constant                      { $1 }
 ;
 exprlist:
