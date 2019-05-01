@@ -1,4 +1,5 @@
-all:
+all: run clean
+run:
 	ocamlc -c main.ml
 	ocamllex lexer.mll       # generates lexer.ml
 	ocamlyacc parser.mly     # generates parser.ml and parser.mli
@@ -6,7 +7,9 @@ all:
 	ocamlc -c lexer.ml
 	ocamlc -c parser.ml
 	ocamlc -c com.ml
-	ocamlc -o calculate main.cmo lexer.cmo parser.cmo com.cmo
+	ocamlc -o program main.cmo lexer.cmo parser.cmo com.cmo
 
 clean:
-	rm calculate *.cmo *.cmi *.mli lexer.ml parser.ml
+	rm *.cmo *.cmi *.mli lexer.ml parser.ml
+allclean:
+	rm program *.cmo *.cmi lexer.ml parser.ml
