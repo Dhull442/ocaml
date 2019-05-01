@@ -16,7 +16,6 @@ let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
 let integer = ('0'|['1'-'9']digit*)
 let alphanum = ['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']+
-let everything = ['A'-'Z' 'a'-'z' '0'-'9' '_' ' ' '\n' '\t' '&' ]*
 
 (* RULE *)
 rule read = parse
@@ -28,9 +27,8 @@ rule read = parse
 | ','                   { COMMA }
 | "return"              { PRET }
 | "view"                { PVIEW }
+| "call"                { PCALL }
 | ':'                   { COLON }
-| '|'                   { PIPE }
 | '\n'                  { EOL }
 | alphanum as s         { ID s }
-| eof                   { EOF }
 | _ as invalid          { raise (InvalidToken invalid) }

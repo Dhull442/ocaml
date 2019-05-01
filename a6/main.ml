@@ -16,9 +16,16 @@ let g =[    F ("main",["P";"Q"],[("a",Tint);("b",Tint);("c",Tint)],[]);
 let rec get i g = match g with
   gi :: gs -> if (i=0) then gi else get (i-1) gs
 | [] -> raise (Error "Not so deep");;
+let rec getel s g = match g with
+   gi :: gs -> (match gi with F (name,_,_,_) -> if (name = s) then gi else getel s gs)
+| [] -> raise (Error "Not present");;
 let rec find s st = match st with
   si :: ss -> (match si with VB (name,_,_) -> if (name = s) then true else find s ss | RET (_) -> false | _ -> find s ss)
 | [] -> false;;
+let rec finds s st = match st with
+  si :: ss -> (match si with name -> if (name = s) then true else finds s ss)
+| [] -> false;;
+
 let rec findval s st = match st with
   VB (name,t,va)  :: ss -> if (name = s) then va else findval s ss
 | _ :: ss-> findval s ss
@@ -43,13 +50,41 @@ match st with
 ); printstack ss
 | [] -> print_endline "|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|";;
 
-let st = [VB("a",Tint,10)];;
+let st = [SP 0;NAME ("main");FP 0;SL (["P";"Q"]);VB ("a",Tint,0);VB ("b",Tint,0); VB ("c",Tint,0)];;
+let sp = 7;;
+let fp = 2;;
 let rec eval x op =
-  match op with (st,g,sp)
-  match x with
-  ASSIGN (s,ex) -> (match ex with (N i) -> (update s i st [],g,sp) | V x -> let i = findval x st  in (update s i st [],g,sp))
-| VIEW ->print_endline "|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|"; printstack st ;(st,g,sp)
-| CALL (s,ls) ->
-| RETURN
-| _ -> raise (Error "Unin")
+  let rec alter len st ret = match st with
+    si :: ss -> if(len>0) then (alter (len-1) ss [si]@ret) else ret
+    | [] -> if (len=0) then ret else raise (Error "Expected longer")
+    in
+  let rec createargs l invb ret stack= match invb with
+  (s,ty) :: invbs ->
+  (match l with
+    li :: ls -> (match li with N i -> createargs ls invbs (VB (s,ty,i) :: ret) stack | V str -> createargs ls invbs (VB(s,ty,findval str (List.rev stack)) :: ret) stack)
+  | [] -> raise (Error "Irregular Length"))
+  | [] -> ret
+  in
+  let rec initialize lv = match lv with
+  (s,ty) :: ls -> VB (s,ty,0) :: initialize ls
+  | [] -> []
+  in
+  match op with (st,g,sp,fp) ->
+  (match x with
+  ASSIGN (s,ex) -> (match ex with (N i) -> (List.rev (update s i (List.rev st) []),g,sp,fp) | V x -> let i = findval x st  in (List.rev (update s i (List.rev st) []),g,sp,fp))
+| VIEW ->print_endline "|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|"; printstack st ;(st,g,sp,fp)
+| CALL (s,ls) ->( match (get (fp+1) st) with SL (lst) ->
+  (if finds s lst then
+    match getel s g  with
+    F (name,child,lvb,invb) ->
+    (if (List.length ls = List.length invb) then
+      let x = List.length ls in let locals = initialize lvb in
+      (st @ (createargs ls invb [] st) @ [SP (sp);NAME (name);FP(fp);SL (child)]@(locals),g,sp+x+4+(List.length locals),sp+x+2)
+    else
+      raise (Error "Input variables num not equal"))
+  else raise (Error "Function not callable!"))
+  | _ -> raise (Error "WRONG IMPELE")
+  )
+| RETURN -> (match get (fp-2) st with SP (spo) ->( match get fp st with FP (fpo) -> (List.rev (alter spo st []),g,spo,fpo) | _ -> raise (Error "Expected FP")) | _ -> raise (Error "Expected sp")))
 ;;
+let ans = (st,g,sp,fp);;
