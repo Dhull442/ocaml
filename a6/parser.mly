@@ -5,7 +5,7 @@
 /* Tokens are defined below.  */
 %token <int> INT
 %token <string> ID
-%token EQ COLON EOL PCALL COMMA PRET PVIEW LP RP 
+%token EQ COLON EOL PCALL COMMA PRET PVIEW LP RP VIEWP
 %start comd
 %type <Main.commands> comd /* Returns definitions */
 %type <Main.expr> value
@@ -19,6 +19,7 @@ main:
   | PCALL ID LP valuelist RP      { CALL ($2,$4) }
   | PRET                        { RETURN }
   | PVIEW                       { VIEW }
+  | VIEWP                       { VIEWSPFP }
 ;
 valuelist:
   valuelist COMMA value          {  $1@[$3] }

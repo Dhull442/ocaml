@@ -28,7 +28,9 @@ rule read = parse
 | "return"              { PRET }
 | "view"                { PVIEW }
 | "call"                { PCALL }
+| "pointers"            { VIEWP }
 | ':'                   { COLON }
+
 | '\n'                  { EOL }
 | alphanum as s         { ID s }
 | _ as invalid          { raise (InvalidToken invalid) }

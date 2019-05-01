@@ -2,7 +2,7 @@ exception Error of string;;
 type extype = Tint | Tunit;;
 type elements = SL of string list | VB of string * extype * int | RET of int | FP of int | SP of int | NAME of string;;
 type expr = N of int | V of string;;
-type commands = ASSIGN of string * expr | CALL of string * (expr list) | RETURN | VIEW;;
+type commands = ASSIGN of string * expr | CALL of string * (expr list) | RETURN | VIEW | VIEWSPFP ;;
 type frame = F of string * (string list) * ((string * extype) list) * ((string * extype) list);;
 let g =[    F ("main",["P";"Q"],[("a",Tint);("b",Tint);("c",Tint)],[]);
             F ("P",["R";"S"],[("z",Tint);("a",Tint)],[("x",Tint);("y",Tint)]);
@@ -73,6 +73,7 @@ let rec eval x op =
   (match x with
   ASSIGN (s,ex) -> (match ex with (N i) -> (List.rev (update s i (List.rev st) []),g,sp,fp) | V x -> let i = findval x st  in (List.rev (update s i (List.rev st) []),g,sp,fp))
 | VIEW ->print_endline "|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|"; printstack st ;(st,g,sp,fp)
+| VIEWSPFP -> print_endline "|=|=|=|=|=|=|=|=|"; print_bytes "SP => ";print_endline (string_of_int sp); print_bytes "FP => "; print_endline  (string_of_int fp); print_endline "|=|=|=|=|=|=|=|=|";(st,g,sp,fp)
 | CALL (s,ls) ->( match (get (fp+1) st) with SL (lst) ->
   (if finds s lst then
     match getel s g  with
@@ -85,6 +86,8 @@ let rec eval x op =
   else raise (Error "Function not callable!"))
   | _ -> raise (Error "WRONG IMPELE")
   )
-| RETURN -> (match get (fp-2) st with SP (spo) ->( match get fp st with FP (fpo) -> (List.rev (alter spo st []),g,spo,fpo) | _ -> raise (Error "Expected FP")) | _ -> raise (Error "Expected sp")))
+| RETURN -> (match get (fp-2) st with SP (spo) ->( match get fp st with FP (fpo) -> (List.rev (alter spo st []),g,spo,fpo) | _ -> raise (Error "Expected FP")) | _ -> raise (Error "Expected sp"))
+
+)
 ;;
 let ans = (st,g,sp,fp);;
