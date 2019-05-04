@@ -71,7 +71,7 @@ let rec eval x op =
   in
   match op with (st,g,sp,fp) ->
   (match x with
-  ASSIGN (s,ex) -> (match ex with (N i) -> (List.rev (update s i (List.rev st) []),g,sp,fp) | V x -> let i = findval x st  in (List.rev (update s i (List.rev st) []),g,sp,fp))
+  ASSIGN (s,ex) -> (match ex with (N i) -> (List.rev (update s i (List.rev st) []),g,sp,fp) | V x -> let i = findval x (List.rev st)  in (List.rev (update s i (List.rev st) []),g,sp,fp))
 | VIEW ->print_endline "|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|"; printstack st ;(st,g,sp,fp)
 | VIEWSPFP -> print_endline "|=|=|=|=|=|=|=|=|"; print_bytes "SP => ";print_endline (string_of_int sp); print_bytes "FP => "; print_endline  (string_of_int fp); print_endline "|=|=|=|=|=|=|=|=|";(st,g,sp,fp)
 | CALL (s,ls) ->( match (get (fp+1) st) with SL (lst) ->
