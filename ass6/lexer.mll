@@ -15,27 +15,22 @@
 let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
 let integer = ('0'|['1'-'9']digit*)
-let alphanum = ['A'-'Z']['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']*
-let everything = ['A'-'Z' 'a'-'z' '0'-'9' '_' ' ' '\n' '\t' '&' ]*
+let alphanum = ['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']+
 
 (* RULE *)
 rule read = parse
  whitespace             { read lexbuf }
-| '/''*' everything '*''/'      { read lexbuf }
 | integer as n          { INT (int_of_string n) }
-| '\n'                  { EOL }
 | '('                   { LP }
 | ')'                   { RP }
-| "var"                 { PVAR }
+| '='                   { EQ }
+| ','                   { COMMA }
+| "return"              { PRET }
+| "view"                { PVIEW }
 | "call"                { PCALL }
-| "="                   { EQ }
-| "program"             { PPROGRAM }
-| "showstack"                  { PS }
-| "procedure"           { PPROCEDURE }
-| ';'                   { SEMICOLON }
+| "viewr"            { VIEWP }
 | ':'                   { COLON }
-| "Tint"                { TINT }
-| "Tunit"               { TUNIT }
+
+| '\n'                  { EOL }
 | alphanum as s         { ID s }
-| eof                   { EOF }
 | _ as invalid          { raise (InvalidToken invalid) }

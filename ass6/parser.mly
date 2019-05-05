@@ -1,56 +1,31 @@
 %{
-    open Evaluator
+    open Main
 %}
 
 /* Tokens are defined below.  */
 %token <int> INT
 %token <string> ID
-%token EQ LP RP COLON EOF TINT TUNIT SEMICOLON PVAR PCALL PPROCEDURE EOL PS PPROGRAM
-%start main
-%type <Evaluator.expr> main /* Returns expression */
-%type <Evaluator.typ> typeval
+%token EQ COLON EOL PCALL COMMA PRET PVIEW LP RP VIEWP
+%start comd
+%type <Main.commands> comd /* Returns definitions */
+%type <Main.expr> value
 %%
 
+comd:
+  main EOL                      { $1 }
+;
 main:
-    assign EOL                       { $1 }
-    | SEMICOLON SEMICOLON EOL            { RET }
-    | PS                 EOL             { ViewStack }
-    | PPROGRAM ID EOL                    { Program ($2) }
+  ID COLON EQ value             { ASSIGN ($1,$4) }
+  | PCALL ID LP valuelist RP      { CALL ($2,$4) }
+  | PRET                        { RETURN }
+  | PVIEW                       { VIEW }
+  | VIEWP                       { VIEWR }
 ;
-assign:
-    ID COLON EQ constant                         { ASSIGN ($1,$4) }
-    | proc                                    { $1 }
+valuelist:
+  valuelist COMMA value          {  $1@[$3] }
+  | value                       { [$1] }
 ;
-
-proc:
-      PCALL ID LP exprlist RP                                  { CALL ($2,$4) }
-    | PPROCEDURE ID LP vbleslist RP COLON                { DEFINE (P($2,$4)) }
-    | dcl                               { $1 }
-;
-
-vbleslist:
-    vbleslist SEMICOLON vble              { $1 @ [$3] }
-    | vble                                { [$1] }
-;
-
-vble:
-    ID COLON typeval             { VARIABLE ($1,$3) }
-;
-
-typeval:
-    TINT                      { Tint }
-    | TUNIT                   { Tunit }
-;
-
-dcl:
-    PVAR vbleslist SEMICOLON         { DCL ($2) }
-    | constant                      { $1 }
-;
-exprlist:
-  exprlist SEMICOLON constant           { $1 @ [$3] }
-| constant                              { [$1] }
-;
-constant:
-   INT                                  { N($1) }
-   | ID                                 { V($1) }
+value:
+  INT                         { N ($1) }
+  | ID                        { V ($1) }
 ;
