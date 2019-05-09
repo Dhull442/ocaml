@@ -80,7 +80,7 @@ match def with
     )
   | Local (l1,l2) -> (
       let g_d = gettypegdash g l1 in
-      augment g_d ((gettypegdash (augment g g_d)) l2))
+      ((gettypegdash (augment g g_d)) l2))
 ;;
 (* hastype : ((string * exptype) list) -> exptree -> exptype -> bool *)
 let rec hastype g e t = try (getexptype g e = t) with _ -> false ;;
