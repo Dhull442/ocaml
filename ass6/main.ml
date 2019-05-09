@@ -155,7 +155,7 @@ let rec eval x op=
       raise (Error "Input variables num not equal"))
   else raise (Error "Function not callable!")))
   | _ -> raise (Error "Expected NAME"))
-| RETURN -> (match get (fp-2) st with SP (spo) ->( match get fp st with FP (fpo) -> let newst = List.rev (alter spo st []) in (newst,g,spo,fpo,updatedr dr newst 0) | _ -> raise (Error "Expected FP")) | _ -> raise (Error "Expected sp"))
+| RETURN -> (match get (fp-2) st with SP (spo) ->( match get fp st with FP (fpo) -> let newst = List.rev (alter (spo-1) st []) in (newst,g,spo,fpo,updatedr dr newst 0) | _ -> raise (Error "Expected FP")) | _ -> raise (Error "Expected sp"))
 )
 ;;
 let ans = (st,g,sp,fp,dr);;
